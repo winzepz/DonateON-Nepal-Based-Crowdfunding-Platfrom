@@ -29,3 +29,4 @@ text.log
 /scripts/
 **/*.exe
 **/*.dll
+docker-compose.yml
