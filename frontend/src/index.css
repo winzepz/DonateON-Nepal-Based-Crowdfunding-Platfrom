@@ -1,0 +1,79 @@
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/900.css";
+@import "@fontsource/playfair-display/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark text-gray-900 font-sans antialiased selection:bg-primary/40 selection:text-white overflow-x-hidden;
+  }
+}
+
+@layer components {
+  /* Clean, professional card system */
+  .glass-card {
+    @apply bg-[#131316] border border-white/5 shadow-lg transition-all duration-200;
+  }
+
+  .glass-card:hover {
+    @apply border-white/10 shadow-xl bg-[#18181B];
+  }
+
+  .premium-shadow {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  /* Professional text treatment */
+  .text-gradient {
+    @apply text-white font-serif;
+  }
+
+  /* Solid, efficient buttons */
+  .btn-premium {
+    @apply px-8 py-3 rounded-xl text-black bg-primary hover:bg-emerald-400 transition-all font-bold flex items-center justify-center tracking-normal;
+  }
+}
+
+/* Simplified scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090B;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272A;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3F3F46;
+}
+
+/* Elite Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090B;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272A;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3F3F46;
+}

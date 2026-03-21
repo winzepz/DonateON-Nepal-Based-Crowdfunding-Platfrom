@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: donateon
+      POSTGRES_USER: donateon
+      POSTGRES_PASSWORD: donateon
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DATABASE_URL: postgres://donateon:donateon@postgres:5432/donateon
+      JWT_SECRET: change-me-in-production
+      FRONTEND_URL: http://localhost:8080
+      CORS_ORIGIN: http://localhost:8080
+      ESEWA_MERCHANT_CODE: EPAYTEST
+      ESEWA_SECRET_KEY: 8gBm/:&EnhH.1/q
+      ESEWA_PAYMENT_URL: https://rc-epay.esewa.com.np/api/epay/main/v2/form
+      ESEWA_STATUS_CHECK_URL: https://rc.esewa.com.np/api/epay/transaction/status/
+      KHALTI_SECRET_KEY: test_secret_key_placeholder
+      KHALTI_INITIATE_URL: https://dev.khalti.com/api/v2/epayment/initiate/
+      KHALTI_LOOKUP_URL: https://dev.khalti.com/api/v2/epayment/lookup/
+    depends_on:
+      - postgres
+    ports:
+      - "3001:3001"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:3001/api
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres_data:
