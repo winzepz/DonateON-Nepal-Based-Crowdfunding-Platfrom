@@ -16,27 +16,35 @@
 }
 
 @layer components {
-  /* Clean, professional card system */
+  /* Ultra-Premium Interactive Card System */
   .glass-card {
-    @apply bg-[#131316] border border-white/5 shadow-lg transition-all duration-200;
+    @apply bg-[#131316] border border-white/5 shadow-2xl transition-all duration-500 relative overflow-hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 pointer-events-none;
   }
 
   .glass-card:hover {
-    @apply border-white/10 shadow-xl bg-[#18181B];
+    @apply border-primary/20 bg-[#18181B] -translate-y-2 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)];
+  }
+
+  .glass-card:hover::before {
+    @apply opacity-100;
   }
 
   .premium-shadow {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
   }
 
-  /* Professional text treatment */
   .text-gradient {
-    @apply text-white font-serif;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-primary/80;
   }
 
-  /* Solid, efficient buttons */
+  /* Interactive Buttons with Haptic feel */
   .btn-premium {
-    @apply px-8 py-3 rounded-xl text-black bg-primary hover:bg-emerald-400 transition-all font-bold flex items-center justify-center tracking-normal;
+    @apply px-8 py-4 rounded-2xl text-black bg-primary border border-primary/20 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-black flex items-center justify-center tracking-tight shadow-xl shadow-primary/10 hover:shadow-primary/20;
   }
 }
 

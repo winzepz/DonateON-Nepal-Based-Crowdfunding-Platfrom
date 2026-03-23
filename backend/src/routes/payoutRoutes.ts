@@ -2,7 +2,7 @@ import express from 'express';
 import { authenticateToken, authorizeRole } from '../middleware/authMiddleware';
 import { validateRequest } from '../middleware/validateRequest';
 import { z } from 'zod';
-import { requestPayout, getMyPayouts, getAllPayouts, approvePayout, rejectPayout } from '../controllers/payoutController';
+import { requestPayout, getMyPayouts, getAllPayouts, approvePayout, rejectPayout, getPayoutDetails } from '../controllers/payoutController';
 
 const router = express.Router();
 
@@ -21,6 +21,7 @@ router.get('/my', authenticateToken, authorizeRole(['CAMPAIGN_CREATOR']), getMyP
 
 // Admin routes
 router.get('/all', authenticateToken, authorizeRole(['ADMIN']), getAllPayouts);
+router.get('/:id', authenticateToken, authorizeRole(['ADMIN']), getPayoutDetails);
 router.post('/:id/approve', authenticateToken, authorizeRole(['ADMIN']), approvePayout);
 router.post('/:id/reject', authenticateToken, authorizeRole(['ADMIN']), rejectPayout);
 

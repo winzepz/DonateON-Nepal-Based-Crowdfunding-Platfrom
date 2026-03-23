@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Heart, Loader2, ArrowRight, Lock, Mail } from 'lucide-react';
+import { Loader2, ArrowRight, Lock, Mail } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -45,15 +47,29 @@ const Login = () => {
         }
     };
 
+    const handleGoogleSuccess = async (response: any) => {
+        setLoading(true);
+        setError('');
+        try {
+            const res = await axios.post(`${API_BASE_URL}/auth/google-login`, {
+                credential: response.credential
+            });
+            const { token, user } = res.data;
+            login(token, user);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Google login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-dark py-12 px-4 sm:px-6 lg:px-8 relative">
 
             <div className="max-w-md w-full space-y-8 glass-card p-12 rounded-[2.5rem] relative z-10">
                 <div className="text-center space-y-4">
-                    <Link to="/" className="inline-flex justify-center group">
-                        <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Heart className="h-8 w-8 text-primary" fill="currentColor" />
-                        </div>
+                    <Link to="/" className="inline-flex justify-center">
+                        <Logo textSize="text-4xl" />
                     </Link>
                     <h2 className="text-4xl font-black text-white tracking-tight">Welcome Back</h2>
                     <p className="text-sm text-gray-500 font-medium">
@@ -147,6 +163,23 @@ const Login = () => {
                             </>
                         )}
                     </button>
+
+                    <div className="relative flex items-center gap-4 my-8">
+                        <div className="flex-grow h-px bg-white/5"></div>
+                        <span className="text-xs font-black text-gray-500 uppercase tracking-widest leading-none">Or continue with</span>
+                        <div className="flex-grow h-px bg-white/5"></div>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError('Google login failed')}
+                            theme="filled_black"
+                            shape="circle"
+                            text="signin_with"
+                            width="340"
+                        />
+                    </div>
                 </form>
             </div>
         </div>

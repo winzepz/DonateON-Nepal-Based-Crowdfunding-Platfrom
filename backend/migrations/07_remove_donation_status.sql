@@ -8,8 +8,12 @@ CREATE TABLE IF NOT EXISTS payment_attempts (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 2. Clean up existing pending donations
-DELETE FROM donations WHERE status = 'pending';
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'donations' AND column_name = 'status') THEN
+        DELETE FROM donations WHERE status = 'pending';
+    END IF;
+END $$;
 
 -- 3. Modify donations table
 -- Note: PostgreSQL doesn't support easy DROP column if it's part of a view/trigger, 

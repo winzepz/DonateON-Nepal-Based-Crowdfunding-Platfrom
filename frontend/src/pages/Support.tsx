@@ -170,7 +170,10 @@ const Support = () => {
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-700 transition-all shadow-lg"
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all shadow-xl font-bold text-sm
+              ${showForm 
+                ? 'bg-white/10 text-white border border-white/10 hover:bg-white/20' 
+                : 'bg-primary text-black hover:bg-emerald-400 active:scale-95'}`}
           >
             {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             {showForm ? 'Cancel' : 'New Ticket'}
@@ -192,7 +195,7 @@ const Support = () => {
         {showForm && (
           <form
             onSubmit={submitTicket}
-            className="glass-card rounded-3xl p-8 space-y-6 border-2 border-indigo-100 shadow-xl shadow-indigo-50"
+            className="glass-card rounded-[2.5rem] p-10 space-y-8 animate-in slide-in-from-top-4 duration-500"
           >
             <h2 className="text-xl font-black text-gray-900">Create New Ticket</h2>
 
@@ -230,10 +233,10 @@ const Support = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-4 rounded-xl bg-gray-900 text-white font-black hover:bg-gray-700 transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+              className="w-full py-5 rounded-2xl bg-primary text-black font-black hover:bg-emerald-400 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-primary/20 disabled:opacity-50 active:scale-[0.98]"
             >
               {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-              {submitting ? 'Submitting...' : 'Submit Ticket'}
+              {submitting ? 'Submitting...' : 'Submit Support Ticket'}
             </button>
           </form>
         )}
@@ -283,9 +286,9 @@ const Support = () => {
                   {isExpanded && (
                     <div className="border-t border-gray-100 p-5 space-y-4 bg-gray-50/30">
                       {/* Original message */}
-                      <div className="bg-dark rounded-xl p-4 border border-gray-100">
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">Your Issue</p>
-                        <p className="text-sm text-gray-700 leading-relaxed">{ticket.description}</p>
+                      <div className="bg-white/5 rounded-2xl p-6 border border-white/5 shadow-inner">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">Initial Report</p>
+                        <p className="text-sm text-gray-200 leading-relaxed font-medium">{ticket.description}</p>
                       </div>
 
                       {/* Thread Messages */}
@@ -298,14 +301,14 @@ const Support = () => {
                             ${msg.sender_role === 'ADMIN' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-600'}`}>
                             {msg.sender_role === 'ADMIN' ? 'S' : 'Y'}
                           </div>
-                          <div className={`max-w-[75%] ${msg.sender_role === 'ADMIN' ? '' : 'items-end flex flex-col'}`}>
-                            <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
+                          <div className={`max-w-[80%] ${msg.sender_role === 'ADMIN' ? '' : 'items-end flex flex-col'}`}>
+                            <div className={`rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-lg
                               ${msg.sender_role === 'ADMIN'
-                                ? 'bg-dark border border-gray-100 text-gray-800'
-                                : 'bg-gray-900 text-white'}`}>
+                                ? 'bg-[#18181B] border border-white/5 text-gray-200'
+                                : 'bg-primary text-black font-semibold'}`}>
                               {msg.message}
                             </div>
-                            <p className="text-xs text-gray-400 mt-1 px-1">
+                            <p className="text-[10px] text-gray-500 mt-2 px-1 font-bold">
                               {msg.sender_name} · {new Date(msg.created_at).toLocaleTimeString('en-NP', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
@@ -321,12 +324,12 @@ const Support = () => {
                             onChange={e => setReplyText(prev => ({ ...prev, [ticket.id]: e.target.value }))}
                             onKeyDown={e => e.key === 'Enter' && sendReply(ticket.id)}
                             placeholder="Type a reply..."
-                            className="flex-1 bg-dark border-2 border-gray-100 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 focus:border-indigo-300 focus:outline-none transition-colors"
+                            className="flex-1 bg-[#18181B] border-2 border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder-gray-600 focus:border-primary focus:outline-none transition-all shadow-inner"
                           />
                           <button
                             onClick={() => sendReply(ticket.id)}
                             disabled={sendingReply === ticket.id || !replyText[ticket.id]?.trim()}
-                            className="h-12 w-12 rounded-xl bg-gray-900 text-white flex items-center justify-center hover:bg-gray-700 transition-all disabled:opacity-40 flex-shrink-0"
+                            className="h-12 w-12 rounded-xl bg-primary text-black flex items-center justify-center hover:bg-emerald-400 transition-all disabled:opacity-40 flex-shrink-0 shadow-lg shadow-primary/10 active:scale-90"
                           >
                             {sendingReply === ticket.id
                               ? <Loader2 className="h-4 w-4 animate-spin" />

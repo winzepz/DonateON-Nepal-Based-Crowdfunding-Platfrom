@@ -2,9 +2,16 @@ import { Globe, Shield, Users, ArrowRight, CheckCircle, Heart, TrendingUp, Zap }
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { API_BASE_URL } from '../config';
+import AppearOnScroll from '../components/AppearOnScroll';
+import NumberTicker from '../components/NumberTicker';
+
+// Register GSAP plugin
+gsap.registerPlugin(ScrollTrigger);
 
 const LandingPage = () => {
     const { isAuthenticated } = useAuth();
@@ -14,7 +21,10 @@ const LandingPage = () => {
         happyDonors: 0,
         impactedCommunities: 0
     });
-    const [featuredCampaign, setFeaturedCampaign] = useState<any>(null);
+
+    const heroRef = useRef<HTMLDivElement>(null);
+    const blob1Ref = useRef<HTMLDivElement>(null);
+    const blob2Ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -26,40 +36,71 @@ const LandingPage = () => {
             }
         };
 
-        const fetchCampaigns = async () => {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/campaigns`);
-                const campaigns = response.data;
-                if (campaigns && campaigns.length > 0) {
-                    // Find campaign with highest currentAmount
-                    const top = campaigns.reduce((prev: any, current: any) => (parseFloat(prev.currentAmount) > parseFloat(current.currentAmount)) ? prev : current);
-                    setFeaturedCampaign(top);
-                }
-            } catch (error) {
-                console.error('Failed to fetch campaigns', error);
-            }
-        };
-
         fetchStats();
-        fetchCampaigns();
+
+        // GSAP Animations
+        const ctx = gsap.context(() => {
+            // Initial Hero Entrance
+            gsap.from(".hero-content > *", {
+                y: 30,
+                opacity: 0,
+                duration: 1,
+                stagger: 0.15,
+                ease: "power3.out"
+            });
+
+            gsap.from(".hero-image", {
+                scale: 0.95,
+                opacity: 0,
+                x: 20,
+                duration: 1.2,
+                ease: "power2.out"
+            });
+
+            // Parallax effect on background blobs
+            gsap.to(blob1Ref.current, {
+                y: -100,
+                scrollTrigger: {
+                    trigger: heroRef.current,
+                    start: "top top",
+                    end: "bottom top",
+                    scrub: 1.5,
+                }
+            });
+
+            gsap.to(blob2Ref.current, {
+                y: 50,
+                scrollTrigger: {
+                    trigger: heroRef.current,
+                    start: "top top",
+                    end: "bottom top",
+                    scrub: 2,
+                }
+            });
+
+        });
+
+        return () => ctx.revert();
     }, []);
 
     return (
         <div className="min-h-screen bg-dark font-sans overflow-x-hidden">
             {/* Hero Section */}
-            <div className="relative overflow-hidden pt-20 pb-12 sm:pt-32 sm:pb-16 lg:pb-24">
-
+            <div ref={heroRef} className="relative overflow-hidden pt-20 pb-12 sm:pt-32 sm:pb-16 lg:pb-24">
+                {/* Background Blobs (GSAP Parallax) */}
+                <div ref={blob1Ref} className="absolute -top-24 right-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+                <div ref={blob2Ref} className="absolute top-1/2 -left-24 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="lg:grid lg:grid-cols-12 lg:gap-8">
-                        <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left space-y-10">
+                        <div className="hero-content sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left space-y-10">
                             <h1 className="text-5xl tracking-tight font-black text-white sm:text-7xl leading-[1.1]">
                                 <span className="block bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-400 drop-shadow-sm">
                                     DonateOn
                                 </span>
                                 <span className="block text-2xl sm:text-3xl mt-4 text-gray-400 font-medium tracking-wide">Verified Giving and Impact in Nepal</span>
                             </h1>
-                            <p className="text-lg text-gray-600 sm:text-xl max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                            <p className="text-lg text-gray-400 sm:text-xl max-w-xl mx-auto lg:mx-0 leading-relaxed">
                                 DonateOn connects powerful stories with secure local payments. Every NRs counts towards a better community.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
@@ -110,24 +151,24 @@ const LandingPage = () => {
                             </div>
                         </div>
 
-                        <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
+                        <div className="mt-12 hero-image relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
                             <div className="relative mx-auto w-full rounded-3xl shadow-2xl overflow-hidden hover:scale-[1.02] transition-transform duration-700 group">
                                 <img
                                     className="w-full object-cover aspect-video lg:aspect-square"
-                                    src={featuredCampaign ? featuredCampaign.imageUrl : "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1200&q=80"}
-                                    alt="Campaign Impact"
+                                    src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1200"
+                                    alt="Community Impact"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
                                 <div className="absolute bottom-6 left-6 right-6 p-6 bg-dark/20 backdrop-blur-xl border border-white/30 rounded-2xl">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-black uppercase tracking-widest text-white">Live Status</span>
-                                        <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                                        <span className="text-xs font-black uppercase tracking-widest text-white font-mono">Platform Insight</span>
+                                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
                                     </div>
-                                    <p className="text-xl font-black text-white">
-                                        {featuredCampaign ? `NRs ${(featuredCampaign.currentAmount / 1000).toFixed(1)}K` : 'NRs 0'}
+                                    <p className="text-xl font-black text-white tracking-tight">
+                                        Empowering Communities
                                     </p>
-                                    <p className="text-sm font-medium text-white/90 line-clamp-1">
-                                        {featuredCampaign ? `Raised for ${featuredCampaign.title}` : 'Start your first campaign today'}
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-1">
+                                        Verified Funding Across Nepal
                                     </p>
                                 </div>
                             </div>
@@ -140,19 +181,26 @@ const LandingPage = () => {
             <div className="py-24 border-y border-white/5">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[
-                            { label: 'Total Raised', value: `NRs ${(stats.totalRaised / 1000000).toFixed(1)}M+`, icon: Heart, color: 'text-rose-500', bg: 'bg-rose-500/10 border-rose-500/20' },
-                            { label: 'Active Campaigns', value: `${stats.activeCampaigns}+`, icon: TrendingUp, color: 'text-indigo-400', bg: 'bg-indigo-400/10 border-indigo-400/20' },
-                            { label: 'Happy Donors', value: `${stats.happyDonors}+`, icon: Users, color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/20' },
-                            { label: 'Villages Impacted', value: `${stats.impactedCommunities}+`, icon: Globe, color: 'text-primary', bg: 'bg-primary/10 border-primary/20' },
+                        {stats && [
+                            { label: 'Total Raised', value: stats.totalRaised, prefix: 'NRs ', suffix: '', icon: Heart, color: 'text-rose-500', bg: 'bg-rose-500/10 border-rose-500/20' },
+                            { label: 'Active Campaigns', value: stats.activeCampaigns, suffix: '+', icon: TrendingUp, color: 'text-indigo-400', bg: 'bg-indigo-400/10 border-indigo-400/20' },
+                            { label: 'Happy Donors', value: stats.happyDonors, suffix: '+', icon: Users, color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/20' },
+                            { label: 'Villages Impacted', value: stats.impactedCommunities, suffix: '+', icon: Globe, color: 'text-primary', bg: 'bg-primary/10 border-primary/20' },
                         ].map((stat, i) => (
-                            <div key={i} className="bg-white/5 p-8 rounded-3xl shadow-sm border border-white/5 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-                                <div className={`h-12 w-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                                    <stat.icon className="h-6 w-6" />
+                            <AppearOnScroll key={i} delay={i * 100}>
+                                <div className="bg-white/5 p-8 rounded-[2.5rem] shadow-sm border border-white/5 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                                    <div className={`h-12 w-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                                        <stat.icon className="h-6 w-6" />
+                                    </div>
+                                    <NumberTicker 
+                                      value={stat.value} 
+                                      prefix={stat.prefix} 
+                                      suffix={stat.suffix} 
+                                      className="text-2xl sm:text-3xl font-black text-white" 
+                                    />
+                                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mt-2">{stat.label}</p>
                                 </div>
-                                <p className="text-2xl sm:text-3xl font-black text-white">{stat.value}</p>
-                                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mt-1">{stat.label}</p>
-                            </div>
+                            </AppearOnScroll>
                         ))}
                     </div>
                 </div>
@@ -173,16 +221,18 @@ const LandingPage = () => {
                             { step: '02', title: 'Community Synergy', desc: 'Connect instantly with high-intent local and global donors.', icon: Users },
                             { step: '03', title: 'Final Disbursement', desc: 'Secure payouts to local Nepali banks with full proof of impact.', icon: Shield },
                         ].map((item, i) => (
-                            <div key={i} className="relative group p-10 rounded-[2.5rem] bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-500">
-                                <div className="text-6xl font-black text-white/5 group-hover:text-primary/10 transition-colors absolute top-6 right-10 select-none">
-                                    {item.step}
+                            <AppearOnScroll key={i} direction={i === 0 ? 'right' : i === 2 ? 'left' : 'up'} delay={i * 200}>
+                                <div className="relative group p-10 rounded-[2.5rem] bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-500 h-full">
+                                    <div className="text-6xl font-black text-white/5 group-hover:text-primary/10 transition-colors absolute top-6 right-10 select-none">
+                                        {item.step}
+                                    </div>
+                                    <div className="h-16 w-16 bg-dark border border-white/10 rounded-2xl flex items-center justify-center mb-10 group-hover:rotate-6 transition-transform">
+                                        <item.icon className="h-8 w-8 text-primary" />
+                                    </div>
+                                    <h4 className="text-2xl font-black text-white mb-4 tracking-tight">{item.title}</h4>
+                                    <p className="text-sm font-medium text-gray-500 leading-relaxed">{item.desc}</p>
                                 </div>
-                                <div className="h-16 w-16 bg-dark border border-white/10 rounded-2xl flex items-center justify-center mb-10 group-hover:rotate-6 transition-transform">
-                                    <item.icon className="h-8 w-8 text-primary" />
-                                </div>
-                                <h4 className="text-2xl font-black text-white mb-4 tracking-tight">{item.title}</h4>
-                                <p className="text-sm font-medium text-gray-500 leading-relaxed">{item.desc}</p>
-                            </div>
+                            </AppearOnScroll>
                         ))}
                     </div>
                 </div>

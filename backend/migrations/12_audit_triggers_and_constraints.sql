@@ -1,8 +1,13 @@
 -- 12_audit_triggers_and_constraints.sql
 
 -- 1. Add Numeric Constraints to avoid negative values
+ALTER TABLE campaigns DROP CONSTRAINT IF EXISTS chk_campaign_target_positive;
 ALTER TABLE campaigns ADD CONSTRAINT chk_campaign_target_positive CHECK (target_amount >= 0);
+
+ALTER TABLE campaigns DROP CONSTRAINT IF EXISTS chk_campaign_current_positive;
 ALTER TABLE campaigns ADD CONSTRAINT chk_campaign_current_positive CHECK (current_amount >= 0);
+
+ALTER TABLE donations DROP CONSTRAINT IF EXISTS chk_donation_amount_positive;
 ALTER TABLE donations ADD CONSTRAINT chk_donation_amount_positive CHECK (amount > 0);
 
 -- 2. Audit Trigger Function

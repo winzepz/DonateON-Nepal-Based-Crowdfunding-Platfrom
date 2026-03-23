@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Heart, MapPin, Shield, TrendingUp, Search, Filter } from 'lucide-react';
 import CampaignCard from '../components/CampaignCard';
 import { API_BASE_URL } from '../config';
+import AppearOnScroll from '../components/AppearOnScroll';
+import { GridSkeleton } from '../components/Skeleton';
 
 interface Campaign {
     id: string;
@@ -170,24 +172,21 @@ const CampaignList = () => {
 
                 {/* Campaigns Grid */}
                 {loading ? (
-                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                        {Array(6).fill(0).map((_, i) => (
-                            <div key={i} className="h-[500px] w-full rounded-[3rem] bg-white/5 animate-pulse" />
-                        ))}
-                    </div>
+                    <GridSkeleton count={6} />
                 ) : filteredCampaigns.length > 0 ? (
                     <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
-                        {filteredCampaigns.map((campaign) => (
-                            <CampaignCard
-                                key={campaign.id}
-                                id={campaign.id}
-                                title={campaign.title}
-                                description={campaign.description}
-                                imageUrl={campaign.imageUrl}
-                                organizerName={campaign.organizer?.name}
-                                currentAmount={campaign.currentAmount}
-                                targetAmount={campaign.targetAmount}
-                            />
+                        {filteredCampaigns.map((campaign, i) => (
+                            <AppearOnScroll key={campaign.id} delay={i * 100} threshold={0.05}>
+                                <CampaignCard
+                                    id={campaign.id}
+                                    title={campaign.title}
+                                    description={campaign.description}
+                                    imageUrl={campaign.imageUrl}
+                                    organizerName={campaign.organizer?.name}
+                                    currentAmount={campaign.currentAmount}
+                                    targetAmount={campaign.targetAmount}
+                                />
+                            </AppearOnScroll>
                         ))}
                     </div>
                 ) : (

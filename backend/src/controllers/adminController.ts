@@ -25,6 +25,29 @@ export const getPendingKYC = async (_req: AuthRequest, res: Response) => {
     }
 };
 
+export const getKYCDetails = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            `SELECT d.id, d.user_id AS "userId", d.document_type AS "documentType", 
+                    d.image_url AS "imageUrl", d.status, d.created_at AS "createdAt",
+                    u.name AS "userName", u.email AS "userEmail", u.kyc_status AS "userKycStatus"
+             FROM kyc_documents d
+             JOIN users u ON d.user_id = u.id
+             WHERE d.id = $1`,
+            [id]
+        );
+        if (result.rows.length === 0) {
+            console.warn(`KYC detail fetch failed: No record found for ID ${id}`);
+            return res.status(404).json({ error: 'KYC request not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Get KYC details error:', error);
+        res.status(500).json({ error: 'Failed to fetch KYC details' });
+    }
+};
+
 export const approveKYC = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
@@ -104,18 +127,72 @@ export const rejectKYC = async (req: AuthRequest, res: Response) => {
 export const getPendingCampaigns = async (_req: AuthRequest, res: Response) => {
     try {
         const result = await pool.query(
-            `SELECT c.id, c.title, c.description, c.target_amount AS "targetAmount", 
-                    c.image_url AS "imageUrl", c.created_at AS "createdAt",
-                    u.name AS "organizerName", c.status
+            `SELECT c.id, c.title, c.description, c.image_url AS "imageUrl", 
+                    c.target_amount AS "targetAmount", c.current_amount AS "currentAmount",
+                    c.status, c.created_at AS "createdAt", u.name AS "organizerName"
              FROM campaigns c
              JOIN users u ON c.organizer_id = u.id
              WHERE c.status = 'PENDING'
-             ORDER BY c.created_at ASC`
+             ORDER BY c.created_at DESC`
         );
         res.json(result.rows);
     } catch (error) {
         console.error('Get pending campaigns error:', error);
         res.status(500).json({ error: 'Failed to fetch pending campaigns' });
+    }
+};
+
+export const getCampaignDetails = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            `SELECT c.*, 
+                    c.image_url AS "imageUrl", c.target_amount AS "targetAmount", c.current_amount AS "currentAmount",
+                    u.name AS "organizerName", u.email AS "organizerEmail", 
+                    u.kyc_status AS "organizerKycStatus",
+                    (SELECT COALESCE(SUM(amount), 0) FROM donations WHERE campaign_id = c.id AND payment_status = 'SUCCEEDED') AS "totalRaised",
+                    (SELECT COUNT(*) FROM donations WHERE campaign_id = c.id AND payment_status = 'SUCCEEDED') AS "donationCount"
+             FROM campaigns c
+             JOIN users u ON c.organizer_id = u.id
+             WHERE c.id = $1`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            console.warn(`Campaign detail fetch failed: No record found for ID ${id}`);
+            return res.status(404).json({ error: 'Campaign not found' });
+        }
+
+        const campaign = result.rows[0];
+
+        // Fetch Payout Stats
+        const payoutStats = await pool.query(
+            `SELECT 
+                COALESCE(SUM(CASE WHEN status = 'APPROVED' THEN amount ELSE 0 END), 0) AS "releasedAmount",
+                COALESCE(SUM(CASE WHEN status = 'PENDING' THEN amount ELSE 0 END), 0) AS "pendingPayoutAmount"
+             FROM payouts WHERE campaign_id = $1`,
+            [id]
+        );
+
+        // Fetch Recent Donations for this campaign
+        const recentDonations = await pool.query(
+            `SELECT d.*, u.name AS "donorName", dc.code AS "donationCode"
+             FROM donations d
+             LEFT JOIN users u ON d.user_id = u.id
+             LEFT JOIN donation_codes dc ON dc.donation_id = d.id
+             WHERE d.campaign_id = $1 AND d.payment_status = 'SUCCEEDED'
+             ORDER BY d.created_at DESC LIMIT 10`,
+            [id]
+        );
+
+        res.json({
+            ...campaign,
+            payouts: payoutStats.rows[0],
+            recentDonations: recentDonations.rows
+        });
+    } catch (error) {
+        console.error('Get admin campaign details error:', error);
+        res.status(500).json({ error: 'Failed to fetch campaign intelligence' });
     }
 };
 
@@ -347,7 +424,10 @@ export const getAdminStats = async (_req: AuthRequest, res: Response) => {
             donorCountRes,
             topCampaignsRes,
             gatewayBreakdownRes,
-            recentRes
+            recentRes,
+            volumeRes,
+            creatorCountRes,
+            verifiedCountRes
         ] = await Promise.all([
             pool.query(
                 `SELECT 
@@ -383,7 +463,17 @@ export const getAdminStats = async (_req: AuthRequest, res: Response) => {
                  WHERE d.payment_status = 'SUCCEEDED'
                  ORDER BY d.created_at DESC
                  LIMIT 10`
-            )
+            ),
+            pool.query(
+                `SELECT DATE(created_at) AS date, SUM(amount) AS volume 
+                 FROM donations 
+                 WHERE payment_status = 'SUCCEEDED' 
+                 AND created_at > NOW() - INTERVAL '30 days'
+                 GROUP BY DATE(created_at) 
+                 ORDER BY date ASC`
+            ),
+            pool.query(`SELECT COUNT(*)::int AS count FROM users WHERE role = 'CAMPAIGN_CREATOR'`),
+            pool.query(`SELECT COUNT(*)::int AS count FROM users WHERE kyc_status = 'VERIFIED'`)
         ]);
 
         res.json({
@@ -395,6 +485,9 @@ export const getAdminStats = async (_req: AuthRequest, res: Response) => {
             topCampaigns: topCampaignsRes.rows,
             gatewayBreakdown: gatewayBreakdownRes.rows,
             recentDonations: recentRes.rows,
+            campaignVolume: volumeRes.rows,
+            activeCreators: creatorCountRes.rows[0].count,
+            verifiedUsers: verifiedCountRes.rows[0].count
         });
     } catch (error) {
         console.error('Get admin stats error:', error);
@@ -411,7 +504,9 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
         const { entityType, entityId, action } = req.query as Record<string, string>;
         
         let query = `
-            SELECT al.*, u.name AS "adminName", u.email AS "adminEmail"
+            SELECT al.id, al.user_id, al.action, al.entity_type AS "entityType", al.entity_id AS "entityId", 
+                   al.details, al.ip_address AS "ipAddress", al.created_at AS "createdAt",
+                   u.name AS "adminName", u.email AS "adminEmail"
             FROM audit_logs al
             LEFT JOIN users u ON al.user_id = u.id
         `;
