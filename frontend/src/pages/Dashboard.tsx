@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Target, Wallet, Copy, TrendingUp, Plus, Settings, LogOut, Layout, Clock } from 'lucide-react';
 import CampaignCard from '../components/CampaignCard';
 import { API_BASE_URL } from '../config';
+import { gsap } from 'gsap';
+import AppearOnScroll from '../components/AppearOnScroll';
+import { GridSkeleton, TableSkeleton } from '../components/Skeleton';
 
 const Dashboard = () => {
     const { isAuthenticated, user, token, logout } = useAuth();
@@ -19,6 +22,7 @@ const Dashboard = () => {
     const [showPayoutModal, setShowPayoutModal] = useState(false);
     const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
     const [payoutAmount, setPayoutAmount] = useState('');
+    const dashboardRef = useRef<HTMLDivElement>(null);
 
     const isFundraiser = user?.role === 'CAMPAIGN_CREATOR' || user?.role === 'ADMIN';
 
@@ -90,17 +94,37 @@ const Dashboard = () => {
         };
 
         fetchData();
+
+        // GSAP Entrance
+        const ctx = gsap.context(() => {
+            gsap.from(".dash-sidebar > *", {
+                x: -20,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power2.out"
+            });
+            gsap.from(".dash-main-header > *", {
+                y: 20,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power2.out"
+            });
+        }, dashboardRef);
+
+        return () => ctx.revert();
     }, [isAuthenticated, token, isFundraiser]);
 
     if (!isAuthenticated) return null;
 
     return (
-        <div className="min-h-screen bg-dark text-gray-900 pb-24 relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <div ref={dashboardRef} className="min-h-screen pb-24 relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
                     
                     {/* Left Side: Profile Summary & Quick Stats */}
-                    <div className="w-full lg:w-80 space-y-6 lg:sticky lg:top-24">
+                    <div className="dash-sidebar w-full lg:w-80 space-y-6 lg:sticky lg:top-24">
                         <div className="glass-card rounded-[2.5rem] p-8 border-white/5 bg-[#131316]/60 backdrop- shadow-2xl overflow-hidden relative group">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
                             
@@ -159,7 +183,7 @@ const Dashboard = () => {
 
                     {/* Right Side: Main Dashboard Content */}
                     <div className="flex-grow space-y-10 w-full lg:w-2/3">
-                        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <header className="dash-main-header flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                             <div className="space-y-1">
                                 <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter">Dashboard</h1>
                                 <p className="text-sm font-bold text-gray-500 uppercase tracking-[0.2em]">{isFundraiser ? 'Campaign Management' : 'Donation Activity'}</p>
@@ -186,7 +210,7 @@ const Dashboard = () => {
                                 
                                 <div className="grid sm:grid-cols-2 gap-6">
                                     {loading ? (
-                                        [1, 2].map(i => <div key={i} className="h-96 rounded-[2.5rem] bg-dark/5 animate-pulse" />)
+                                        <GridSkeleton count={2} />
                                     ) : ownedCampaigns.length > 0 ? (
                                         ownedCampaigns.map(c => (
                                             <div key={c.id} className="relative group/card">
@@ -259,34 +283,36 @@ const Dashboard = () => {
 
                             <div className="glass-card rounded-[2.5rem] overflow-hidden border-white/5 bg-[#131316]/40 backdrop- shadow-xl">
                                 {loading ? (
-                                    <div className="p-12 flex justify-center"><div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+                                    <TableSkeleton rows={4} />
                                 ) : donations.length > 0 ? (
                                     <div className="divide-y divide-white/5">
-                                        {donations.slice(0, 10).map((d: any) => (
-                                            <div key={d.id} className="p-6 hover:bg-dark/5 transition-colors group/row">
-                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="h-12 w-12 rounded-2xl bg-dark/5 flex items-center justify-center text-gray-400 group-hover/row:bg-primary group-hover/row:text-white transition-all">
-                                                            <Clock className="h-5 w-5" />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <h4 className="font-black text-white text-lg tracking-tight group-hover/row:text-primary transition-colors">{d.campaignTitle}</h4>
-                                                            <div className="flex items-center gap-3">
-                                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{new Date(d.createdAt).toLocaleDateString('en-NP')}</span>
-                                                                <div className="h-1 w-1 rounded-full bg-gray-700" />
-                                                                <button onClick={() => copyCode(d.donationCode || d.trackingCode)} className="text-[10px] font-black text-primary hover:underline flex items-center gap-1">
-                                                                    {d.donationCode || d.trackingCode} <Copy className="h-3 w-3" />
-                                                                </button>
-                                                                {copiedCode === (d.donationCode || d.trackingCode) && <span className="text-[8px] font-black text-emerald-500 uppercase animate-in fade-in zoom-in">Copied!</span>}
+                                        {donations.slice(0, 10).map((d: any, i) => (
+                                            <AppearOnScroll key={d.id} delay={i * 50} direction="none" threshold={0.01}>
+                                                <div className="p-6 hover:bg-dark/5 transition-colors group/row">
+                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="h-12 w-12 rounded-2xl bg-dark/5 flex items-center justify-center text-gray-400 group-hover/row:bg-primary group-hover/row:text-white transition-all">
+                                                                <Clock className="h-5 w-5" />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <h4 className="font-black text-white text-lg tracking-tight group-hover/row:text-primary transition-colors">{d.campaignTitle}</h4>
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{new Date(d.createdAt).toLocaleDateString('en-NP')}</span>
+                                                                    <div className="h-1 w-1 rounded-full bg-gray-700" />
+                                                                    <button onClick={() => copyCode(d.donationCode || d.trackingCode)} className="text-[10px] font-black text-primary hover:underline flex items-center gap-1">
+                                                                        {d.donationCode || d.trackingCode} <Copy className="h-3 w-3" />
+                                                                    </button>
+                                                                    {copiedCode === (d.donationCode || d.trackingCode) && <span className="text-[8px] font-black text-emerald-500 uppercase animate-in fade-in zoom-in">Copied!</span>}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="text-right flex items-center sm:block gap-4">
-                                                        <p className="text-2xl font-black text-white tracking-tighter">Rs {parseFloat(d.amount).toLocaleString()}</p>
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Success</span>
+                                                        <div className="text-right flex items-center sm:block gap-4">
+                                                            <p className="text-2xl font-black text-white tracking-tighter">Rs {parseFloat(d.amount).toLocaleString()}</p>
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Success</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </AppearOnScroll>
                                         ))}
                                     </div>
                                 ) : (

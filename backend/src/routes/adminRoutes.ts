@@ -12,6 +12,8 @@ import {
     getAdminDonations,
     exportDonationsCSV,
     getAdminStats,
+    getKYCDetails,
+    getCampaignDetails,
 } from '../controllers/adminController';
 import {
     getAllSupportTickets,
@@ -34,11 +36,13 @@ router.get('/audit-logs/export', exportAuditLogs);
 
 // KYC Routes
 router.get('/kyc', getPendingKYC);
+router.get('/kyc/:id', getKYCDetails);
 router.post('/kyc/:id/approve', approveKYC);
 router.post('/kyc/:id/reject', rejectKYC);
 
 // Campaign Routes
 router.get('/campaigns', getPendingCampaigns);
+router.get('/campaigns/:id', getCampaignDetails);
 router.post('/campaigns/:id/approve', approveCampaign);
 router.post('/campaigns/:id/reject', rejectCampaign);
 

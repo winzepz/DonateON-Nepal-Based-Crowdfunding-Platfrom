@@ -4,6 +4,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../db";
 import { QueryResult } from "pg";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 dotenv.config();
 
@@ -16,6 +19,7 @@ interface DbUser {
   role: "DONOR" | "CAMPAIGN_CREATOR" | "ADMIN";
   password_hash?: string;
   kyc_status: "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+  profile_image?: string | null;
 }
 
 // JWT secret
@@ -70,7 +74,7 @@ export const register = async (req: Request, res: Response) => {
     const createdUser: QueryResult<DbUser> = await pool.query(
       `INSERT INTO users (email, password_hash, name, role)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, email, name, role, kyc_status AS "kycStatus"`,
+       RETURNING id, email, name, role, kyc_status AS "kycStatus", profile_image AS "profileImage"`,
       [normalizedEmail, hashedPassword, name.trim(), userRole]
     );
 
@@ -85,7 +89,8 @@ export const register = async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         role: user.role,
-        kycStatus: user.kyc_status || 'UNVERIFIED'
+        kycStatus: (user as any).kycStatus || 'UNVERIFIED',
+        profileImage: (user as any).profileImage
       },
     });
   } catch (err) {
@@ -105,7 +110,7 @@ export const login = async (req: Request, res: Response) => {
     const normalizedEmail = email.toLowerCase().trim();
 
     const userResult: QueryResult<DbUser> = await pool.query(
-      `SELECT id, email, name, role, password_hash, kyc_status AS "kycStatus"
+      `SELECT id, email, name, role, password_hash, kyc_status AS "kycStatus", profile_image AS "profileImage"
        FROM users
        WHERE email = $1`,
       [normalizedEmail]
@@ -176,7 +181,7 @@ export const getProfile = async (req: any, res: Response) => {
     }
 
     const userResult: QueryResult<DbUser> = await pool.query(
-      `SELECT id, email, name, role, kyc_status AS "kycStatus"
+      `SELECT id, email, name, role, kyc_status AS "kycStatus", profile_image AS "profileImage"
        FROM users
        WHERE id = $1`,
       [userId]
@@ -190,5 +195,107 @@ export const getProfile = async (req: any, res: Response) => {
     res.json(user);
   } catch (error) {
     handleError(error, res, "GET_PROFILE");
+  }
+};
+
+// UPDATE PROFILE IMAGE
+export const updateProfileImage = async (req: any, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const file = req.file;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    if (!file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    const { Readable } = require('stream');
+    const cloudinary = require('../config/cloudinary').default;
+
+    const result: any = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'profile_images', transformation: [{ width: 500, height: 500, crop: 'limit' }] },
+        (error: any, result: any) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      Readable.from(file.buffer).pipe(uploadStream);
+    });
+
+    const imageUrl = result.secure_url;
+
+    await pool.query(
+      'UPDATE users SET profile_image = $1 WHERE id = $2',
+      [imageUrl, userId]
+    );
+
+    res.json({ message: 'Profile image updated', imageUrl });
+  } catch (error) {
+    handleError(error, res, "UPDATE_PROFILE_IMAGE");
+  }
+};
+
+// GOOGLE LOGIN
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ message: "Invalid Google token" });
+    }
+
+    const { email, name, picture } = payload;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user exists
+    let userResult: QueryResult<DbUser> = await pool.query(
+      `SELECT id, email, name, role, kyc_status AS "kycStatus", profile_image AS "profileImage"
+       FROM users
+       WHERE email = $1`,
+      [normalizedEmail]
+    );
+
+    let user = userResult.rows[0];
+
+    if (!user) {
+      // Create user
+      const createdUser: QueryResult<DbUser> = await pool.query(
+        `INSERT INTO users (email, password_hash, name, role, profile_image)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, email, name, role, kyc_status AS "kycStatus", profile_image AS "profileImage"`,
+        [normalizedEmail, 'GOOGLE_AUTH', name, 'DONOR', picture]
+      );
+      user = createdUser.rows[0];
+    }
+
+    const token = generateToken({ id: user.id, role: user.role });
+
+    return res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        kycStatus: (user as any).kycStatus || 'UNVERIFIED',
+        profileImage: (user as any).profileImage
+      },
+    });
+  } catch (err) {
+    handleError(err, res, "GOOGLE_LOGIN");
   }
 };

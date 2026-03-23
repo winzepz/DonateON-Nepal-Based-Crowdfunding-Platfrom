@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, Bell, LifeBuoy, Shield, Award } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown, Bell, LifeBuoy, Shield, Award } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import VerificationBadge from './VerificationBadge';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import Logo from './Logo';
 
 const Navbar = () => {
     const { isAuthenticated, user, token, logout } = useAuth();
@@ -67,11 +68,8 @@ const Navbar = () => {
                 <div className="flex justify-between h-20">
                     {/* Logo Section */}
                     <div className="flex items-center flex-shrink-0">
-                        <Link to="/" className="flex items-center gap-2.5 group">
-                            <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                                <Heart className="h-6 w-6 text-primary" fill="currentColor" />
-                            </div>
-                            <span className="font-bold text-2xl text-gray-900 tracking-tight font-display">DonateOn</span>
+                        <Link to="/">
+                            <Logo textSize="text-2xl" />
                         </Link>
                     </div>
 
@@ -129,8 +127,12 @@ const Navbar = () => {
                                         <span className="text-sm font-semibold text-gray-700 max-w-[100px] truncate">
                                             {user?.name?.split(' ')[0]}
                                         </span>
-                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                            {user?.name?.charAt(0).toUpperCase()}
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
+                                            {user?.profileImage ? (
+                                                <img src={user.profileImage} alt={user.name} className="h-full w-full object-cover" />
+                                            ) : (
+                                                user?.name?.charAt(0).toUpperCase()
+                                            )}
                                         </div>
                                         <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                                     </button>
@@ -265,8 +267,12 @@ const Navbar = () => {
                             {isAuthenticated ? (
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3 px-4 py-2">
-                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                            {user?.name?.charAt(0).toUpperCase()}
+                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                                            {user?.profileImage ? (
+                                                <img src={user.profileImage} alt={user.name} className="h-full w-full object-cover" />
+                                            ) : (
+                                                user?.name?.charAt(0).toUpperCase()
+                                            )}
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-1">

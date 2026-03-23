@@ -16,6 +16,8 @@ interface BadgeData {
     earnedAt: string | null;
 }
 
+import { DashboardSkeleton } from '../components/Skeleton';
+
 const Badges: React.FC = () => {
     const [badges, setBadges] = useState<BadgeData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,15 +64,17 @@ const Badges: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-dark flex items-center justify-center">
-                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+            <div className="min-h-screen px-4">
+                <div className="max-w-5xl mx-auto py-20">
+                    <DashboardSkeleton />
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-dark py-20 px-4">
-            <div className="max-w-5xl mx-auto space-y-16">
+        <div className="min-h-screen pb-24 px-4 overflow-hidden relative">
+            <div className="max-w-5xl mx-auto space-y-16 relative z-10">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-end gap-8">
                     <div className="space-y-4">

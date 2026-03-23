@@ -85,6 +85,31 @@ export const getAllPayouts = async (_req: AuthRequest, res: Response) => {
     }
 };
 
+export const getPayoutDetails = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            `SELECT p.*, 
+                    c.title AS "campaignTitle", c.current_amount AS "campaignCurrentAmount", c.target_amount AS "campaignTargetAmount",
+                    u.name AS "organizerName", u.email AS "organizerEmail", u.kyc_status AS "organizerKycStatus"
+             FROM payouts p
+             JOIN campaigns c ON p.campaign_id = c.id
+             JOIN users u ON p.organizer_id = u.id
+             WHERE p.id = $1`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Payout request not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Get payout details error:', error);
+        res.status(500).json({ error: 'Failed to fetch payout intelligence' });
+    }
+};
+
 export const approvePayout = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;

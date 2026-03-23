@@ -7,12 +7,14 @@ import VerificationBadge from '../components/VerificationBadge';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { API_BASE_URL } from '../config';
+import { DashboardSkeleton } from '../components/Skeleton';
 
 const Profile = () => {
-    const { user, logout, token, loading: authLoading } = useAuth();
+    const { user, logout, token, loading: authLoading, refreshUser } = useAuth();
     const [donations, setDonations] = useState<any[]>([]);
     const [kycData, setKycData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         if (!token) {
@@ -42,10 +44,35 @@ const Profile = () => {
         fetchData();
     }, [token, authLoading]);
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !token) return;
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            await axios.post(`${API_BASE_URL}/auth/me/profile-image`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            await refreshUser();
+        } catch (err) {
+            console.error('Failed to upload profile image:', err);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     if (authLoading || (loading && token)) {
         return (
-            <div className="min-h-screen bg-dark flex items-center justify-center">
-                <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto py-10">
+                    <DashboardSkeleton />
+                </div>
             </div>
         );
     }
@@ -160,10 +187,8 @@ const Profile = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-
-
-            <div className="max-w-4xl mx-auto space-y-10 relative z-10 pt-16">
+        <div className="min-h-screen pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            <div className="max-w-4xl mx-auto space-y-10 relative z-10">
                 {/* Header Section */}
                 <div className="glass-card rounded-[3rem] overflow-hidden group shadow-2xl border-white/5 bg-[#131316]/60 backdrop-">
                     <div className="h-48 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent relative">
@@ -171,11 +196,26 @@ const Profile = () => {
                         <div className="absolute -bottom-16 left-8 flex items-end gap-6">
                             <div className="relative group/avatar">
                                 <div className="h-40 w-40 rounded-[2.5rem] border-8 border-[#09090B] bg-gradient-to-br from-[#18181B] to-[#27272A] flex items-center justify-center text-5xl font-black text-primary shadow-2xl transition-transform group-hover/avatar:scale-105 duration-500 overflow-hidden ring-1 ring-white/10">
-                                    {user.name ? user.name.charAt(0).toUpperCase() : <User className="h-16 w-16" />}
+                                    {uploading ? (
+                                        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    ) : user.profileImage ? (
+                                        <img src={user.profileImage} alt={user.name} className="h-full w-full object-cover" />
+                                    ) : user.name ? (
+                                        user.name.charAt(0).toUpperCase()
+                                    ) : (
+                                        <User className="h-16 w-16" />
+                                    )}
                                 </div>
-                                <div className="absolute bottom-3 right-3 bg-primary text-black rounded-2xl p-2.5 shadow-2xl cursor-pointer hover:scale-110 transition-all border-4 border-[#09090B]">
+                                <label className="absolute bottom-3 right-3 bg-primary text-black rounded-2xl p-2.5 shadow-2xl cursor-pointer hover:scale-110 transition-all border-4 border-[#09090B] z-20">
                                     <Camera className="h-5 w-5" />
-                                </div>
+                                    <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        accept="image/*" 
+                                        onChange={handleImageUpload}
+                                        disabled={uploading}
+                                    />
+                                </label>
                             </div>
                         </div>
                         <div className="absolute bottom-6 right-8">

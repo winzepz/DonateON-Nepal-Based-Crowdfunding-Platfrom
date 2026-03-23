@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS support_tickets (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_support_tickets_user_id ON support_tickets(user_id);
-CREATE INDEX idx_support_tickets_status ON support_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user_id ON support_tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status);
 
 -- 2. Ticket Messages (Replies)
 CREATE TABLE IF NOT EXISTS ticket_messages (
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS ticket_messages (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_ticket_messages_ticket_id ON ticket_messages(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket_id ON ticket_messages(ticket_id);
 
 -- 3. Notifications System
 CREATE TABLE IF NOT EXISTS notifications (
@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX idx_notifications_unread ON notifications(user_id) WHERE read_status = FALSE;
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id) WHERE read_status = FALSE;
 
 -- 4. Triggers to auto-update ticket updated_at
 CREATE OR REPLACE FUNCTION update_ticket_timestamp()

@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { CheckCircle2, FileText, Upload, ShieldCheck, Clock, XCircle, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
+import { CardSkeleton } from '../components/Skeleton';
+
 const KYCSubmission = () => {
     const { token } = useAuth();
     const [documentType, setDocumentType] = useState('citizenship');
@@ -68,46 +70,54 @@ const KYCSubmission = () => {
     };
 
     if (statusLoading) {
-        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+        return (
+            <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-3xl mx-auto">
+                    <CardSkeleton />
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen pb-24 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-                <div className="bg-dark rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-8 border-b border-gray-100">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                <ShieldCheck className="h-6 w-6" />
+                <div className="glass-card rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden bg-[#131316]/60 backdrop-blur-3xl">
+                    <div className="p-12 border-b border-white/5 bg-gradient-to-br from-primary/5 to-transparent">
+                        <div className="flex items-center gap-6 mb-8">
+                            <div className="h-16 w-16 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary shadow-2xl shadow-primary/20">
+                                <ShieldCheck className="h-8 w-8" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Identity Verification</h1>
-                                <p className="text-gray-500">Submit your documents to get verified and start fundraising.</p>
+                                <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic">Oversight Registry</h1>
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-2">Biometric & Identity Matrix Synchronization</p>
                             </div>
                         </div>
 
                         {/* Status Card */}
-                        <div className={`rounded-xl p-4 flex items-center gap-3 ${status === 'VERIFIED' ? 'bg-green-50 text-green-700 border border-green-200' :
-                            status === 'PENDING' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-                                status === 'REJECTED' ? 'bg-red-50 text-red-700 border border-red-200' :
-                                    'bg-blue-50 text-blue-700 border border-blue-200'
+                        <div className={`rounded-2xl p-6 flex items-center gap-4 border-2 transition-all duration-500 ${status === 'VERIFIED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                            status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                status === 'REJECTED' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
+                                    'bg-indigo-500/10 text-indigo-500 border-indigo-500/20'
                             }`}>
-                            {status === 'VERIFIED' && <CheckCircle2 className="h-5 w-5" />}
-                            {status === 'PENDING' && <Clock className="h-5 w-5" />}
-                            {status === 'REJECTED' && <XCircle className="h-5 w-5" />}
-                            {status === 'UNVERIFIED' && <AlertCircle className="h-5 w-5" />}
+                            <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-current/10 flex items-center justify-center">
+                                {status === 'VERIFIED' && <CheckCircle2 className="h-5 w-5" />}
+                                {status === 'PENDING' && <Clock className="h-5 w-5" />}
+                                {status === 'REJECTED' && <XCircle className="h-5 w-5" />}
+                                {status === 'UNVERIFIED' && <AlertCircle className="h-5 w-5" />}
+                            </div>
 
-                            <span className="font-semibold">
-                                {status === 'VERIFIED' && 'Your account is verified.'}
-                                {status === 'PENDING' && 'Verification is pending. We are reviewing your documents.'}
-                                {status === 'REJECTED' && 'Verification rejected. Please re-submit valid documents.'}
-                                {status === 'UNVERIFIED' && 'Action Required: Please submit your documents.'}
+                            <span className="font-black text-[10px] uppercase tracking-widest leading-relaxed">
+                                {status === 'VERIFIED' && 'Neural core verified. Full administrative access granted.'}
+                                {status === 'PENDING' && 'Protocol pending. Synchronization with global oversight in progress.'}
+                                {status === 'REJECTED' && 'Biometric mismatch. Please re-submit valid credentials.'}
+                                {status === 'UNVERIFIED' && 'Authentication Required: Please synchronize your identity matrix.'}
                             </span>
                         </div>
                     </div>
 
                     {(status === 'UNVERIFIED' || status === 'REJECTED') && (
-                        <div className="p-8">
+                        <div className="p-12">
                             {message && (
                                 <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
                                     }`}>
@@ -115,38 +125,42 @@ const KYCSubmission = () => {
                                 </div>
                             )}
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">Document Type</label>
-                                    <div className="grid grid-cols-2 gap-4">
+                            <form onSubmit={handleSubmit} className="space-y-10">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] ml-1">Protocol Type</label>
+                                    <div className="grid grid-cols-2 gap-6">
                                         <button
                                             type="button"
                                             onClick={() => setDocumentType('citizenship')}
-                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${documentType === 'citizenship'
-                                                ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            className={`p-8 rounded-[2.5rem] border-2 flex flex-col items-center gap-4 transition-all duration-500 ${documentType === 'citizenship'
+                                                ? 'border-primary bg-primary/5 text-primary shadow-[0_0_30px_rgba(16,185,129,0.1)]'
+                                                : 'border-white/5 bg-white/5 text-gray-400 hover:border-white/10 hover:bg-white/10'
                                                 }`}
                                         >
-                                            <FileText className="h-6 w-6" />
-                                            <span className="font-medium">Citizenship</span>
+                                            <div className={`h-16 w-16 rounded-2xl flex items-center justify-center transition-colors ${documentType === 'citizenship' ? 'bg-primary/20' : 'bg-dark'}`}>
+                                                <FileText className="h-8 w-8" />
+                                            </div>
+                                            <span className="font-black tracking-tight text-lg">Citizenship</span>
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setDocumentType('license')}
-                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${documentType === 'license'
-                                                ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            className={`p-8 rounded-[2.5rem] border-2 flex flex-col items-center gap-4 transition-all duration-500 ${documentType === 'license'
+                                                ? 'border-primary bg-primary/5 text-primary shadow-[0_0_30px_rgba(16,185,129,0.1)]'
+                                                : 'border-white/5 bg-white/5 text-gray-400 hover:border-white/10 hover:bg-white/10'
                                                 }`}
                                         >
-                                            <FileText className="h-6 w-6" />
-                                            <span className="font-medium">Driving License</span>
+                                            <div className={`h-16 w-16 rounded-2xl flex items-center justify-center transition-colors ${documentType === 'license' ? 'bg-primary/20' : 'bg-dark'}`}>
+                                                <FileText className="h-8 w-8" />
+                                            </div>
+                                            <span className="font-black tracking-tight text-lg">Driving License</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">Upload Document Image</label>
-                                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:bg-gray-50 transition-colors text-center cursor-pointer relative">
+                                <div className="space-y-4 text-white">
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] ml-1">Visual Evidence Upload</label>
+                                    <div className="border-2 border-dashed border-white/10 rounded-[2.5rem] p-12 hover:bg-white/5 transition-all duration-500 text-center cursor-pointer relative group/upload">
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -155,19 +169,19 @@ const KYCSubmission = () => {
                                         />
                                         {imagePreview ? (
                                             <div className="relative inline-block">
-                                                <img src={imagePreview} alt="Preview" className="h-48 rounded-lg shadow-sm" />
-                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
-                                                    <span className="text-white font-medium">Change Image</span>
+                                                <img src={imagePreview} alt="Preview" className="h-64 rounded-[2rem] shadow-2xl border-4 border-[#09090B]" />
+                                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-[2rem] opacity-0 hover:opacity-100 transition-opacity">
+                                                    <span className="text-white font-black uppercase tracking-widest text-xs">Reset Matrix</span>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="space-y-4">
-                                                <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                                                    <Upload className="h-6 w-6 text-gray-400" />
+                                            <div className="space-y-6">
+                                                <div className="h-20 w-20 bg-white/5 rounded-[1.5rem] flex items-center justify-center mx-auto group-hover/upload:scale-110 transition-transform">
+                                                    <Upload className="h-8 w-8 text-gray-500" />
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-900">Click to upload or drag and drop</p>
-                                                    <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                                                <div className="space-y-2">
+                                                    <p className="text-lg font-black text-white tracking-tight">Initiate Synchronization</p>
+                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">PNG, JPG Matrix Formats (MAX 5MB)</p>
                                                 </div>
                                             </div>
                                         )}
@@ -177,9 +191,9 @@ const KYCSubmission = () => {
                                 <button
                                     type="submit"
                                     disabled={loading || !image}
-                                    className="w-full py-3 px-4 rounded-xl text-white bg-primary hover:bg-indigo-700 font-semibold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:shadow-none transition-all"
+                                    className="w-full py-6 px-10 rounded-[2rem] text-black bg-primary hover:bg-emerald-400 font-black shadow-2xl shadow-primary/20 disabled:opacity-20 disabled:grayscale transition-all transform hover:-translate-y-1 uppercase tracking-[0.2em]"
                                 >
-                                    {loading ? 'Submitting...' : 'Submit Documents'}
+                                    {loading ? 'Processing Synchronization...' : 'Confirm Matrix Upload'}
                                 </button>
                             </form>
                         </div>

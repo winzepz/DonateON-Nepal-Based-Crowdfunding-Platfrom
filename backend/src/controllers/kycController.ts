@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { recordAuditLog } from '../services/auditService';
 import { AuthRequest } from '../middleware/authMiddleware';
 import pool, { withTransaction } from '../db';
 import cloudinary from '../config/cloudinary';
@@ -51,9 +52,10 @@ export const submitKYC = async (req: AuthRequest, res: Response) => {
 
                 try {
                     await withTransaction(async (client) => {
-                        await client.query(
+                        const docInsert = await client.query(
                             `INSERT INTO kyc_documents (user_id, document_type, image_url, public_id, status)
-                             VALUES ($1, $2, $3, $4, 'PENDING')`,
+                             VALUES ($1, $2, $3, $4, 'PENDING')
+                             RETURNING id`,
                             [userId, documentType, result.secure_url, result.public_id]
                         );
 
@@ -61,6 +63,15 @@ export const submitKYC = async (req: AuthRequest, res: Response) => {
                             `UPDATE users SET kyc_status = 'PENDING' WHERE id = $1`,
                             [userId]
                         );
+
+                        await recordAuditLog({
+                            client,
+                            userId,
+                            action: 'KYC_SUBMIT',
+                            entityType: 'KYC',
+                            entityId: docInsert.rows[0].id,
+                            details: { documentType }
+                        });
                     });
 
                     res.status(201).json({

@@ -7,6 +7,7 @@ import {
   Bell, CheckCheck, CheckCircle, AlertTriangle,
   Award, Megaphone, Heart, ArrowRight, Loader2
 } from 'lucide-react';
+import { TableSkeleton } from '../components/Skeleton';
 
 interface Notification {
   id: string;
@@ -99,7 +100,7 @@ const Notifications = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-dark flex flex-col items-center justify-center px-4 space-y-8">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 space-y-8">
         <div className="h-20 w-20 bg-white/5 rounded-[2rem] flex items-center justify-center">
             <Bell className="h-10 w-10 text-gray-700" />
         </div>
@@ -115,7 +116,7 @@ const Notifications = () => {
   const unreadCount = notifications.filter(n => !n.read_status).length;
 
   return (
-    <div className="min-h-screen bg-dark pt-20 pb-24 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-12">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8">
@@ -146,9 +147,7 @@ const Notifications = () => {
         {/* Notification List */}
         <div className="space-y-4">
           {loading ? (
-            Array(5).fill(0).map((_, i) => (
-              <div key={i} className="h-24 rounded-[2rem] bg-white/5 animate-pulse" />
-            ))
+            <TableSkeleton rows={6} />
           ) : notifications.length === 0 ? (
             <div className="glass-card rounded-[3rem] py-32 text-center space-y-6">
               <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mx-auto opacity-20">

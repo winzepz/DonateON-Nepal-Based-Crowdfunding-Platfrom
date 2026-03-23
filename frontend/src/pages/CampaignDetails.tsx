@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Share2, Clock, Target, Heart, ShieldCheck, Wallet, Landmark } from 'lucide-react';
 import VerificationBadge from '../components/VerificationBadge';
 import { API_BASE_URL } from '../config';
+import { CampaignDetailsSkeleton } from '../components/Skeleton';
 
 interface Donation {
     id: number;
@@ -55,14 +56,20 @@ const CampaignDetails = () => {
         fetchCampaign();
     }, [id]);
 
-    if (loading) return <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
+    if (loading) return (
+        <div className="min-h-screen pb-24 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto py-20">
+                <CampaignDetailsSkeleton />
+            </div>
+        </div>
+    );
     if (!campaign) return <div className="text-center p-10">Campaign not found</div>;
 
     const progress = Math.min((campaign.currentAmount / campaign.targetAmount) * 100, 100);
     const daysLeft = campaign.deadline ? Math.ceil((new Date(campaign.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
     return (
-        <div className="bg-dark min-h-screen py-20 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen pb-24 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto space-y-12">
                 <div className="glass-card rounded-[3rem] overflow-hidden border-white/5 bg-[#131316]/60 backdrop-blur-3xl shadow-2xl">
                     <div className="h-96 w-full bg-dark relative overflow-hidden">

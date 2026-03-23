@@ -2,6 +2,7 @@ import { PoolClient } from 'pg';
 import pool from '../db';
 
 export type AuditAction =
+    | 'KYC_SUBMIT'
     | 'KYC_APPROVE'
     | 'KYC_REJECT'
     | 'CAMPAIGN_CREATE'
@@ -14,7 +15,8 @@ export type AuditAction =
     | 'USER_ROLE_CHANGE'
     | 'DONATION_RELEASE'
     | 'DONATION_SUCCESS'
-    | 'EXPORT_DONATIONS_CSV';
+    | 'EXPORT_DONATIONS_CSV'
+    | 'FINANCIAL_AUDIT';
 
 export type AuditEntity = 'KYC' | 'CAMPAIGN' | 'PAYOUT' | 'USER' | 'DONATION';
 

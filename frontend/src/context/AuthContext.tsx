@@ -8,6 +8,7 @@ interface User {
     name: string;
     role: string;
     kycStatus?: string;
+    profileImage?: string;
 }
 
 interface AuthContextType {

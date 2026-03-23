@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS stories (
 );
 
 -- Add index for performance
-CREATE INDEX idx_stories_campaign_id ON stories(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_stories_campaign_id ON stories(campaign_id);

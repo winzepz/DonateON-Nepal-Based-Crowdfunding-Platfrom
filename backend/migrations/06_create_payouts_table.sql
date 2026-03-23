@@ -1,5 +1,10 @@
 -- 06_create_payouts_table.sql
-CREATE TYPE payout_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payout_status') THEN
+        CREATE TYPE payout_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+    END IF;
+END$$;
 
 CREATE TABLE IF NOT EXISTS payouts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
