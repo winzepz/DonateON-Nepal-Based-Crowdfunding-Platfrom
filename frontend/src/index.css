@@ -18,16 +18,16 @@
 @layer components {
   /* Ultra-Premium Interactive Card System */
   .glass-card {
-    @apply bg-[#131316] border border-white/5 shadow-2xl transition-all duration-500 relative overflow-hidden;
+    @apply bg-[#131316] border border-white/5 shadow-lg transition-all duration-200 relative overflow-hidden;
   }
 
   .glass-card::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 pointer-events-none;
+    @apply absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-200 pointer-events-none;
   }
 
   .glass-card:hover {
-    @apply border-primary/20 bg-[#18181B] -translate-y-2 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)];
+    @apply border-primary/20 bg-[#18181B] shadow-2xl;
   }
 
   .glass-card:hover::before {
@@ -44,7 +44,7 @@
 
   /* Interactive Buttons with Haptic feel */
   .btn-premium {
-    @apply px-8 py-4 rounded-2xl text-black bg-primary border border-primary/20 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-black flex items-center justify-center tracking-tight shadow-xl shadow-primary/10 hover:shadow-primary/20;
+    @apply px-8 py-4 rounded-2xl text-black bg-primary border border-primary/20 hover:bg-emerald-400 active:scale-[0.98] transition-all duration-200 font-black flex items-center justify-center tracking-tight shadow-xl shadow-primary/10;
   }
 }
 

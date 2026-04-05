@@ -24,10 +24,21 @@ const Donate = () => {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState('');
     const [campaignId, setCampaignId] = useState<number | string>('');
+    const [categoryPoolId, setCategoryPoolId] = useState<string | null>(null);
+    const [categoryName, setCategoryName] = useState<string | null>(null);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const { token } = useAuth();
 
     useEffect(() => {
+        const catId = searchParams.get('categoryPoolId');
+        const catName = searchParams.get('name');
+        if (catId) {
+            setCategoryPoolId(catId);
+            setCategoryName(catName);
+            setCampaignId(''); // Reset campaign if category is selected
+            return;
+        }
+
         const fetchCampaigns = async () => {
             try {
                 const response = await axios.get(`${API_BASE_URL}/campaigns`);
@@ -39,7 +50,7 @@ const Donate = () => {
 
                     setCampaignId(matchingCampaign?.id || response.data[0].id);
                 }
-        } catch {
+            } catch {
                 console.warn('Using requested campaign ID or fallback');
             }
         };
@@ -53,7 +64,8 @@ const Donate = () => {
             const idempotencyKey = createIdempotencyKey();
             const response = await axios.post(`${API_BASE_URL}/payment/esewa`, {
                 amount: amount,
-                productId: campaignId,
+                productId: categoryPoolId ? null : campaignId,
+                categoryPoolId: categoryPoolId,
                 isAnonymous,
                 idempotencyKey,
             }, {
@@ -96,8 +108,9 @@ const Donate = () => {
             const idempotencyKey = createIdempotencyKey();
             const response = await axios.post(`${API_BASE_URL}/payment/khalti`, {
                 amount: amount,
-                productId: campaignId,
-                name: 'Campaign Donation',
+                productId: categoryPoolId ? null : campaignId,
+                categoryPoolId: categoryPoolId,
+                name: categoryName ? `Pool: ${categoryName}` : 'Campaign Donation',
                 isAnonymous,
                 idempotencyKey,
             }, {
@@ -125,8 +138,12 @@ const Donate = () => {
         <div className="min-h-screen bg-dark py-20 px-4">
             <div className="max-w-xl mx-auto space-y-8">
                 <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-black text-white tracking-tight">Complete Donation</h1>
-                    <p className="text-gray-500 font-medium">Select your preferred payment method</p>
+                    <h1 className="text-3xl font-black text-white tracking-tight">
+                        {categoryName ? `Donate to ${categoryName}` : 'Complete Donation'}
+                    </h1>
+                    <p className="text-gray-500 font-medium">
+                        {categoryName ? 'Contribution to the community pool' : 'Select your preferred payment method'}
+                    </p>
                 </div>
 
                 <div className="glass-card rounded-[2.5rem] p-10 space-y-10 shadow-2xl">

@@ -13,16 +13,25 @@ import { validateRequest } from '../middleware/validateRequest';
 
 const router = Router();
 
-const paymentInitiationSchema = z.object({
+const basePaymentSchema = z.object({
     amount: z.coerce.number().positive(),
-    productId: z.string().uuid(),
+    productId: z.string().uuid().nullable().optional(),
+    categoryPoolId: z.string().uuid().nullable().optional(),
     isAnonymous: z.boolean().optional(),
     donorName: z.string().trim().min(1).max(120).optional(),
     idempotencyKey: z.string().trim().min(8).max(128).optional(),
 });
 
-const khaltiInitiationSchema = paymentInitiationSchema.extend({
+const paymentInitiationSchema = basePaymentSchema.refine(data => data.productId || data.categoryPoolId, {
+    message: "Either productId or categoryPoolId must be provided",
+    path: ["productId"]
+});
+
+const khaltiInitiationSchema = basePaymentSchema.extend({
     name: z.string().trim().min(1).max(120).optional(),
+}).refine(data => data.productId || data.categoryPoolId, {
+    message: "Either productId or categoryPoolId must be provided",
+    path: ["productId"]
 });
 
 const khaltiVerificationSchema = z.object({

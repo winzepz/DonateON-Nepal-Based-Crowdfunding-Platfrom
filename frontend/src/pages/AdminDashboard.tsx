@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { 
-    Shield, FileText, LayoutList, CreditCard, 
-    BarChart2, DollarSign, TrendingUp, Search, 
+import {
+    Shield, FileText, LayoutList, CreditCard,
+    BarChart2, DollarSign, TrendingUp, Search,
     LifeBuoy, MessageSquare, Send, ArrowUpRight, Activity, RotateCcw
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
@@ -34,7 +34,7 @@ const AdminDashboard = () => {
         if (!token) return;
         setLoading(true);
         try {
-            console.log('Admin Intelligence Refresh Triggered:', { activeTab });
+            console.log('Admin Data Refresh Triggered:', { activeTab });
             const summaryRes = await axios.get(`${API_BASE_URL}/stats/admin`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
                 const res = await axios.get(`${API_BASE_URL}/admin/kyc`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                console.log('KYC Registry Sync:', res.data.length, 'entries');
+                console.log('KYC Data Sync:', res.data.length, 'entries');
                 setKycRequests(res.data);
             } else if (activeTab === 'campaigns') {
                 const res = await axios.get(`${API_BASE_URL}/admin/campaigns`, {
@@ -159,16 +159,16 @@ const AdminDashboard = () => {
                 <div className="flex items-center justify-between gap-8">
                     <div className="space-y-1">
                         <h1 className="text-3xl font-black text-white tracking-tighter leading-tight">Admin Dashboard</h1>
-                        <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px] opacity-70">Operations & Oversight Terminal</p>
+                        <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px] opacity-70">Platform Management</p>
                     </div>
-                    <button 
-                        onClick={fetchData} 
-                        disabled={loading}
-                        className="px-5 py-2.5 bg-[#131316] border border-white/5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:text-primary transition-all flex items-center gap-2.5 active:scale-95 disabled:opacity-50 shadow-xl"
-                    >
-                        <RotateCcw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                        Refresh Registry
-                    </button>
+                   <button
+  onClick={fetchData}
+  disabled={loading}
+  className={`flex items-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+>
+  <RotateCcw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+  Refresh Data
+</button>
                 </div>
 
                 {/* Dashboard Summary Chips */}
@@ -186,16 +186,16 @@ const AdminDashboard = () => {
                         <p className="text-xl font-black text-primary tracking-tighter">Rs {summary?.escrowBalance?.toLocaleString() || '0'}</p>
                     </div>
                     <div className="glass-card p-6 rounded-2xl border-white/5 bg-[#131316]/40 hover:bg-[#131316]/60 transition-colors group">
-                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 group-hover:text-white transition-colors">Nodes</p>
+                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 group-hover:text-white transition-colors">Users</p>
                         <p className="text-xl font-black text-white tracking-tighter">{summary?.totalUsers || '0'}</p>
                     </div>
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="flex flex-wrap gap-2.5 mb-8 p-1.5 bg-[#131316]/60 backdrop-blur-2xl rounded-[2rem] border border-white/5 shadow-2xl overflow-x-auto scrollbar-hide">
+                <div className="flex flex-wrap gap-2.5 mb-8 p-1.5 bg-[#131316] rounded-[2rem] border border-white/5 shadow-2xl overflow-x-auto scrollbar-hide">
                     {[
-                        { id: 'kyc', label: 'KYC Sync', icon: Shield, count: summary?.pendingKYC },
-                        { id: 'campaigns', label: 'Marketplace', icon: LayoutList, count: summary?.pendingCampaigns },
+                        { id: 'kyc', label: 'KYC Reviews', icon: Shield, count: summary?.pendingKYC },
+                        { id: 'campaigns', label: 'Campaigns', icon: LayoutList, count: summary?.pendingCampaigns },
                         { id: 'payouts', label: 'Payouts', icon: CreditCard, count: summary?.pendingPayouts },
                         { id: 'donations', label: 'Donations', icon: DollarSign },
                         { id: 'support', label: 'Tickets', icon: LifeBuoy, count: summary?.pendingTickets },
@@ -205,18 +205,16 @@ const AdminDashboard = () => {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
-                            className={`px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.15em] transition-all flex items-center gap-2.5 group relative overflow-hidden ${
-                                activeTab === tab.id 
-                                ? 'bg-primary text-black shadow-xl shadow-primary/20' 
-                                : 'text-gray-500 hover:text-white hover:bg-white/5'
-                            }`}
+                            className={`px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.15em] flex items-center gap-2.5 group relative overflow-hidden ${activeTab === tab.id
+                                    ? 'bg-primary text-black shadow-xl shadow-primary/20'
+                                    : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                }`}
                         >
                             <tab.icon size={15} />
                             {tab.label}
                             {tab.count !== undefined && tab.count > 0 && (
-                                <span className={`ml-1.5 px-1.5 py-0.5 rounded text-[8px] font-black ${
-                                    activeTab === tab.id ? 'bg-black text-primary' : 'bg-primary/20 text-primary'
-                                }`}>
+                                <span className={`ml-1.5 px-1.5 py-0.5 rounded text-[8px] font-black ${activeTab === tab.id ? 'bg-black text-primary' : 'bg-primary/20 text-primary'
+                                    }`}>
                                     {tab.count}
                                 </span>
                             )}
@@ -264,7 +262,7 @@ const AdminDashboard = () => {
                                                         <td className="px-6 py-6 font-bold text-xs text-gray-400 uppercase tracking-widest">{req.documentType}</td>
                                                         <td className="px-6 py-6 text-[10px] font-mono text-gray-600">{new Date(req.createdAt).toLocaleDateString()}</td>
                                                         <td className="px-6 py-6 text-right rounded-r-2xl">
-                                                            <button onClick={() => navigate(`/admin/kyc/${req.id}`)} className="px-5 py-2.5 bg-white/5 text-primary border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-black transition-all inline-flex items-center gap-2.5 group-hover:scale-105 shadow-lg">
+                                                            <button onClick={() => navigate(`/admin/kyc/${req.id}`)} className="px-5 py-2.5 bg-white/5 text-primary border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-black transition-colors inline-flex items-center gap-2.5 shadow-lg">
                                                                 Review <ArrowUpRight className="h-3.5 w-3.5" />
                                                             </button>
                                                         </td>
@@ -289,9 +287,9 @@ const AdminDashboard = () => {
                                             <thead>
                                                 <tr className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">
                                                     <th className="px-6 py-4">Campaign</th>
-                                                    <th className="px-6 py-4">Intel</th>
+                                                    <th className="px-6 py-4">Category</th>
                                                     <th className="px-6 py-4">Created</th>
-                                                    <th className="px-6 py-4 text-right">Audit</th>
+                                                    <th className="px-6 py-4 text-right">Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -302,7 +300,7 @@ const AdminDashboard = () => {
                                                         <td className="px-6 py-6 rounded-l-2xl max-w-md">
                                                             <div className="flex items-center gap-4">
                                                                 <div className="h-10 w-14 overflow-hidden rounded-xl bg-dark/50 flex-shrink-0 border border-white/5 shadow-xl">
-                                                                    <img src={req.imageUrl} className="h-full w-full object-cover opacity-70 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110" alt="" />
+                                                                    <img src={req.imageUrl} className="h-full w-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" alt="" />
                                                                 </div>
                                                                 <div>
                                                                     <p className="font-black text-white text-md tracking-tighter truncate leading-tight">{req.title}</p>
@@ -315,14 +313,14 @@ const AdminDashboard = () => {
                                                             <p className="font-black text-primary text-lg tracking-tighter">NRs {req.targetAmount?.toLocaleString()}</p>
                                                         </td>
                                                         <td className="px-6 py-6 text-[10px] text-gray-500 font-mono">{new Date(req.createdAt).toLocaleDateString()}</td>
-                                                         <td className="px-6 py-6 text-right rounded-r-2xl">
-                                                             <button 
-                                                                 onClick={() => navigate(`/admin/campaigns/${req.id}`)}
-                                                                 className="px-5 py-2.5 bg-white/5 text-primary border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-black transition-all inline-flex items-center gap-2.5 group-hover:scale-105 shadow-lg"
-                                                             >
-                                                                 Review <ArrowUpRight className="h-3.5 w-3.5" />
-                                                             </button>
-                                                         </td>
+                                                        <td className="px-6 py-6 text-right rounded-r-2xl">
+                                                            <button
+                                                                onClick={() => navigate(`/admin/campaigns/${req.id}`)}
+                                                                className="px-5 py-2.5 bg-white/5 text-primary border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-black transition-colors inline-flex items-center gap-2.5 shadow-lg"
+                                                            >
+                                                                Review <ArrowUpRight className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -362,14 +360,14 @@ const AdminDashboard = () => {
                                                             <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mt-1 font-mono opacity-60">{req.bank_name} • {req.account_number}</p>
                                                         </td>
                                                         <td className="px-6 py-6 font-black text-emerald-400 text-lg tracking-tighter">NRs {parseFloat(req.amount).toLocaleString()}</td>
-                                                         <td className="px-6 py-6 text-right rounded-r-2xl">
-                                                             <button 
-                                                                 onClick={() => navigate(`/admin/payouts/${req.id}`)}
-                                                                 className="px-5 py-2.5 bg-white/5 text-emerald-400 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all inline-flex items-center gap-2.5 group-hover:scale-105 shadow-lg"
-                                                             >
-                                                                 Review <ArrowUpRight className="h-3.5 w-3.5" />
-                                                             </button>
-                                                         </td>
+                                                        <td className="px-6 py-6 text-right rounded-r-2xl">
+                                                            <button
+                                                                onClick={() => navigate(`/admin/payouts/${req.id}`)}
+                                                                className="px-5 py-2.5 bg-white/5 text-emerald-400 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-colors inline-flex items-center gap-2.5 shadow-lg"
+                                                            >
+                                                                Review <ArrowUpRight className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -385,8 +383,8 @@ const AdminDashboard = () => {
                                         <div className="flex flex-wrap gap-4 items-center">
                                             <div className="relative group">
                                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500 group-focus-within:text-primary transition-colors" />
-                                                <input 
-                                                    type="text" 
+                                                <input
+                                                    type="text"
                                                     placeholder="Search transaction node..."
                                                     className="pl-12 pr-6 py-3 bg-dark/50 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest focus:border-primary/50 outline-none w-64 transition-all shadow-inner"
                                                     value={donationSearch}
@@ -406,18 +404,18 @@ const AdminDashboard = () => {
                                                 <thead>
                                                     <tr className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">
                                                         <th className="px-6 py-4">TX ID</th>
-                                                        <th className="px-6 py-4">Node Context</th>
-                                                        <th className="px-6 py-4">Volume</th>
-                                                        <th className="px-6 py-4">Origin</th>
-                                                        <th className="px-6 py-4 text-right">Auth Date</th>
+                                                        <th className="px-6 py-4">Campaign</th>
+                                                        <th className="px-6 py-4">Amount</th>
+                                                        <th className="px-6 py-4">Donor</th>
+                                                        <th className="px-6 py-4 text-right">Date</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {adminDonations.filter(d => 
-                                                        d.id.toLowerCase().includes(donationSearch.toLowerCase()) || 
+                                                    {adminDonations.filter(d =>
+                                                        d.id.toLowerCase().includes(donationSearch.toLowerCase()) ||
                                                         d.campaignTitle?.toLowerCase().includes(donationSearch.toLowerCase())
                                                     ).map((don) => (
-                                                        <tr key={don.id} className="group bg-white/[0.01] hover:bg-white/[0.04] transition-all">
+                                                        <tr key={don.id} className="group bg-white/[0.01] hover:bg-white/[0.04]">
                                                             <td className="px-6 py-6 rounded-l-2xl font-mono text-[9px] text-gray-500">{don.id.slice(0, 18)}...</td>
                                                             <td className="px-6 py-6">
                                                                 <p className="font-black text-white text-md tracking-tighter truncate max-w-[200px]">{don.campaignTitle}</p>
@@ -437,17 +435,54 @@ const AdminDashboard = () => {
                                 </div>
                             )}
 
-                            {/* 5. DEEP INTEL TAB (STATS) */}
+                            {/* 5. STATS TAB */}
                             {activeTab === 'stats' && platformStats && (
-                                <div className="grid lg:grid-cols-2 gap-8">
+                                <div className="space-y-10">
+                                    {/* Temporal Overview Row */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div className="glass-card p-8 rounded-[2rem] border-white/5 bg-primary/5 hover:bg-primary/10 transition-colors group">
+                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Last 24 Hours</p>
+                                            <p className="text-3xl font-black text-white tracking-tighter">Rs {platformStats.raised24h?.toLocaleString()}</p>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <TrendingUp size={12} className="text-primary" />
+                                                <p className="text-[10px] font-bold text-primary uppercase">{platformStats.donations24h} Donations</p>
+                                            </div>
+                                        </div>
+                                        <div className="glass-card p-8 rounded-[2rem] border-white/5 bg-indigo-500/5 hover:bg-indigo-500/10 transition-colors group">
+                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Last 7 Days</p>
+                                            <p className="text-3xl font-black text-white tracking-tighter">Rs {platformStats.raised7d?.toLocaleString()}</p>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <Activity size={12} className="text-indigo-400" />
+                                                <p className="text-[10px] font-bold text-indigo-400 uppercase">{platformStats.donations7d} Donations</p>
+                                            </div>
+                                        </div>
+                                        <div className="glass-card p-8 rounded-[2rem] border-white/5 bg-rose-500/5 hover:bg-rose-500/10 transition-colors group">
+                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-rose-400 transition-colors">Last 30 Days</p>
+                                            <p className="text-3xl font-black text-white tracking-tighter">Rs {platformStats.raised30d?.toLocaleString()}</p>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <BarChart2 size={12} className="text-rose-400" />
+                                                <p className="text-[10px] font-bold text-rose-400 uppercase">{platformStats.donations30d} Donations</p>
+                                            </div>
+                                        </div>
+                                        <div className="glass-card p-8 rounded-[2rem] border-white/5 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors group">
+                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-emerald-400 transition-colors">Last 1 Year</p>
+                                            <p className="text-3xl font-black text-white tracking-tighter">Rs {platformStats.raised1y?.toLocaleString()}</p>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <Shield size={12} className="text-emerald-400" />
+                                                <p className="text-[10px] font-bold text-emerald-400 uppercase">{platformStats.donations1y} Donations</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid lg:grid-cols-2 gap-8">
                                     <div className="glass-card p-8 rounded-[2.5rem] border-white/5 bg-[#131316]/40">
                                         <div className="flex items-center gap-5 mb-8">
                                             <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-2xl shadow-primary/5">
                                                 <TrendingUp size={24} />
                                             </div>
                                             <div>
-                                                <h3 className="text-xl font-black text-white tracking-tighter">Volume Intelligence</h3>
-                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 opacity-60">30-Day Growth Analysis</p>
+                                                <h3 className="text-xl font-black text-white tracking-tighter">Donation Trends</h3>
+                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 opacity-60">Last 30 Days</p>
                                             </div>
                                         </div>
                                         <div className="space-y-4">
@@ -459,15 +494,15 @@ const AdminDashboard = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="glass-card p-8 rounded-[2.5rem] border-white/5 bg-[#131316]/40">
                                         <div className="flex items-center gap-5 mb-8">
                                             <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shadow-2xl shadow-indigo-500/5">
                                                 <Activity size={24} />
                                             </div>
                                             <div>
-                                                <h3 className="text-xl font-black text-white tracking-tighter">Node Activity</h3>
-                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 opacity-60">User Engagement Metrics</p>
+                                                <h3 className="text-xl font-black text-white tracking-tighter">Account Stats</h3>
+                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 opacity-60">User Activity Metrics</p>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-6">
@@ -482,13 +517,14 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                        )}
 
                             {/* 6. AUDIT LOGS TAB */}
                             {activeTab === 'logs' && (
                                 <div className="space-y-6">
                                     <div className="flex gap-4 glass-card p-3 rounded-2xl border-white/5 bg-[#131316]/40">
-                                        <select 
+                                        <select
                                             className="px-5 py-2.5 bg-dark/50 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest focus:border-primary/50 outline-none shadow-inner"
                                             onChange={(e) => setLogFilter({ ...logFilter, entityType: e.target.value || undefined })}
                                         >
@@ -499,7 +535,7 @@ const AdminDashboard = () => {
                                             <option value="FINANCIAL">Finance (Gov Audit)</option>
                                         </select>
                                     </div>
-                                    
+
                                     <div className="glass-card rounded-[1.5rem] p-1 border-white/5 bg-[#131316]/40 shadow-2xl">
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left border-separate border-spacing-y-2 px-6 pb-6">
@@ -508,7 +544,7 @@ const AdminDashboard = () => {
                                                         <th className="px-5 py-3">Timestamp</th>
                                                         <th className="px-5 py-3">Admin</th>
                                                         <th className="px-5 py-3">Action</th>
-                                                        <th className="px-5 py-3">Protocol</th>
+                                                        <th className="px-5 py-3">Log Code</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -547,17 +583,15 @@ const AdminDashboard = () => {
                                                         setSelectedTicket(ticket);
                                                         fetchTicketMessages(ticket.id);
                                                     }}
-                                                    className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 ${
-                                                        selectedTicket?.id === ticket.id 
-                                                        ? 'bg-primary/10 border-primary/30 shadow-xl shadow-primary/5' 
-                                                        : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:translate-x-1'
-                                                    }`}
+                                                    className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 ${selectedTicket?.id === ticket.id
+                                                            ? 'bg-primary/10 border-primary/30 shadow-xl shadow-primary/5'
+                                                            : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:translate-x-1'
+                                                        }`}
                                                 >
                                                     <div className="flex justify-between items-start mb-2">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                                                            ticket.status === 'OPEN' ? 'bg-amber-500/20 text-amber-500' : 
-                                                            ticket.status === 'RESOLVED' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-gray-500/20 text-gray-500'
-                                                        }`}>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${ticket.status === 'OPEN' ? 'bg-amber-500/20 text-amber-500' :
+                                                                ticket.status === 'RESOLVED' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-gray-500/20 text-gray-500'
+                                                            }`}>
                                                             {ticket.status}
                                                         </span>
                                                         <span className="text-[9px] font-mono text-gray-600 font-bold">{new Date(ticket.created_at).toLocaleDateString()}</span>
@@ -579,13 +613,13 @@ const AdminDashboard = () => {
                                                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest opacity-60">{selectedTicket.user_name} • {selectedTicket.user_email}</p>
                                                     </div>
                                                     <div className="flex gap-3">
-                                                        <button 
+                                                        <button
                                                             onClick={() => updateTicketStatus(selectedTicket.id, 'RESOLVED')}
                                                             className="px-5 py-2.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all shadow-lg"
                                                         >
                                                             Resolve
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             onClick={() => updateTicketStatus(selectedTicket.id, 'CLOSED')}
                                                             className="px-5 py-2.5 bg-white/5 text-gray-500 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all shadow-lg"
                                                         >
@@ -597,11 +631,10 @@ const AdminDashboard = () => {
                                                 <div className="flex-grow overflow-y-auto p-8 space-y-6 scrollbar-hide bg-[#09090B]/40 shadow-inner">
                                                     {ticketMessages.map((msg) => (
                                                         <div key={msg.id} className={`flex ${msg.is_admin ? 'justify-end' : 'justify-start'}`}>
-                                                            <div className={`max-w-[80%] p-6 rounded-3xl shadow-xl ${
-                                                                msg.is_admin 
-                                                                ? 'bg-primary text-black rounded-tr-none' 
-                                                                : 'bg-[#131316] text-white border border-white/5 rounded-tl-none border-white/10'
-                                                            }`}>
+                                                            <div className={`max-w-[80%] p-6 rounded-3xl shadow-xl ${msg.is_admin
+                                                                    ? 'bg-primary text-black rounded-tr-none'
+                                                                    : 'bg-[#131316] text-white border border-white/5 rounded-tl-none border-white/10'
+                                                                }`}>
                                                                 <p className="text-sm font-bold leading-relaxed tracking-tight">{msg.message}</p>
                                                                 <p className={`text-[9px] font-black uppercase mt-4 opacity-40 ${msg.is_admin ? 'text-black' : 'text-gray-500'}`}>
                                                                     {new Date(msg.created_at).toLocaleString()}
@@ -613,13 +646,13 @@ const AdminDashboard = () => {
 
                                                 <div className="p-6 bg-dark/70 border-t border-white/5 backdrop-blur-xl">
                                                     <div className="relative group">
-                                                        <textarea 
+                                                        <textarea
                                                             placeholder="Compose administrative reply..."
                                                             className="w-full bg-[#131316] border border-white/10 rounded-2xl p-6 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all resize-none h-28 shadow-inner"
                                                             value={replyMessage}
                                                             onChange={(e) => setReplyMessage(e.target.value)}
                                                         />
-                                                        <button 
+                                                        <button
                                                             onClick={handleSendReply}
                                                             className="absolute bottom-4 right-4 h-12 w-12 rounded-xl bg-primary text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl group-hover:shadow-primary/30"
                                                         >
@@ -632,7 +665,7 @@ const AdminDashboard = () => {
                                             <div className="h-full flex items-center justify-center p-12 text-center opacity-20">
                                                 <div className="space-y-4">
                                                     <MessageSquare size={80} strokeWidth={1} className="mx-auto" />
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.4em]">Select a node to transmit</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.4em]">Select a conversation to reply</p>
                                                 </div>
                                             </div>
                                         )}

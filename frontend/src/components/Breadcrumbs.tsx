@@ -37,13 +37,13 @@ const Breadcrumbs = () => {
                         let label = name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ');
                         
                         // Smart Labels
-                        if (name.length > 20) label = "Records";
-                        if (name === 'kyc') label = "Verification";
-                        if (name === 'payouts') label = "Treasury";
-                        if (name === 'admin') label = "Oversight";
+                        if (name.length > 20) label = "Details";
+                        if (name === 'kyc') label = "KYC";
+                        if (name === 'payouts') label = "Payouts";
+                        if (name === 'admin') label = "Admin";
                         if (name === 'dashboard') label = "Dashboard";
-                        if (name === 'create-campaign') label = "Genesis";
-                        if (name === 'campaigns' && !isLast) label = "Navigator";
+                        if (name === 'create-campaign') label = "New";
+                        if (name === 'campaigns' && !isLast) label = "Browse";
 
                         return (
                             <div key={name} className="flex items-center space-x-2">

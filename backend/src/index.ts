@@ -14,6 +14,7 @@ import payoutRoutes from './routes/payoutRoutes';
 import donationRoutes from './routes/donationRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import supportRoutes from './routes/supportRoutes';
+import categoryRoutes from './routes/categoryRoutes';
 
 import { errorHandler } from './middleware/errorHandler';
 import { attachRequestContext } from './middleware/requestContext';
@@ -75,6 +76,7 @@ app.use('/api/payouts', payoutRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/categories', categoryRoutes);
 
 app.use((_req, res) => res.status(404).json({ message: 'Not Found' }));
 app.use(errorHandler);

@@ -19,6 +19,7 @@ const PaymentSuccess = () => {
     const [donationCode, setDonationCode] = useState('');
     const [newBadges, setNewBadges] = useState<BadgeEarned[]>([]);
     const [copied, setCopied] = useState(false);
+    const [distributedCampaigns, setDistributedCampaigns] = useState<any[]>([]);
     const [showBadgeModal, setShowBadgeModal] = useState(false);
     const verificationAttempted = useRef(false);
 
@@ -28,11 +29,12 @@ const PaymentSuccess = () => {
 
         const verifyPayment = async () => {
             try {
-                const data = searchParams.get('data'); // eSewa sends 'data'
+                const data = searchParams.get('data');
                 if (data) {
                     const res = await axios.get(`${API_BASE_URL}/payment/verify/esewa?data=${data}`);
                     setDonationCode(res.data.donationCode || '');
                     setNewBadges(res.data.newBadges || []);
+                    setDistributedCampaigns(res.data.distributedCampaigns || []);
                     const nextStatus = res.data.status === 'pending' ? 'pending' : 'success';
                     setStatus(nextStatus);
                     setMessage(res.data.message || (nextStatus === 'pending'
@@ -49,6 +51,7 @@ const PaymentSuccess = () => {
                     const res = await axios.post(`${API_BASE_URL}/payment/verify/khalti`, { pidx });
                     setDonationCode(res.data.donationCode || '');
                     setNewBadges(res.data.newBadges || []);
+                    setDistributedCampaigns(res.data.distributedCampaigns || []);
                     const nextStatus = res.data.status === 'pending' ? 'pending' : 'success';
                     setStatus(nextStatus);
                     setMessage(res.data.message || (nextStatus === 'pending'
@@ -103,158 +106,179 @@ const PaymentSuccess = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-            {/* Background decoration */}
+        <div className="min-h-screen bg-[#09090B] flex items-center justify-center p-4 selection:bg-primary/30">
+            {/* Simplified Background Effects */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-emerald-500/5 rounded-full " />
-                <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-blue-500/5 rounded-full " />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[80px] rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[80px] rounded-full" />
             </div>
 
-            {/* Badge Modal */}
+            {/* Badge Modal - Updated UI */}
             {showBadgeModal && newBadges.length > 0 && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-purple-500/40 rounded-3xl p-8 max-w-md w-full shadow-2xl shadow-purple-500/20 text-center animate-in zoom-in-95 duration-300">
-                        <div className="text-5xl mb-2">🎉</div>
-                        <h2 className="text-2xl font-extrabold text-white mb-2">Badge{newBadges.length > 1 ? 's' : ''} Earned!</h2>
-                        <p className="text-slate-400 text-sm mb-6">You've unlocked {newBadges.length > 1 ? `${newBadges.length} new badges` : 'a new badge'}!</p>
-                        <div className="space-y-3 mb-6">
+                <div className="fixed inset-0 bg-dark/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="glass-card rounded-[2.5rem] p-10 max-w-md w-full text-center">
+                        <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Award className="w-10 h-10 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-black text-white mb-2 tracking-tighter">Badges Unlocked!</h2>
+                        <p className="text-gray-500 font-medium text-sm mb-8">Your contribution has earned you new honors.</p>
+                        
+                        <div className="space-y-4 mb-8">
                             {newBadges.map(badge => (
-                                <div key={badge.slug} className="flex items-center gap-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 text-left">
-                                    <span className="text-3xl">{badge.icon}</span>
+                                <div key={badge.slug} className="flex items-center gap-5 bg-white/5 border border-white/10 rounded-2xl p-5 text-left">
+                                    <span className="text-4xl filter drop-shadow-lg">{badge.icon}</span>
                                     <div>
-                                        <p className="font-bold text-white">{badge.title}</p>
-                                        <p className="text-slate-400 text-xs">{badge.description}</p>
+                                        <p className="font-black text-white text-base uppercase tracking-tight">{badge.title}</p>
+                                        <p className="text-gray-500 text-xs font-medium leading-relaxed mt-1">{badge.description}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div className="flex gap-3">
+                        
+                        <div className="grid grid-cols-2 gap-4">
                             <button
                                 onClick={() => setShowBadgeModal(false)}
-                                className="flex-1 py-3 bg-slate-700 text-white rounded-xl font-semibold hover:bg-slate-600 transition-colors"
+                                className="h-14 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white/10"
                             >
                                 Continue
                             </button>
                             <Link
                                 to="/badges"
-                                className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity text-center"
+                                className="h-14 bg-primary text-black rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-400 flex items-center justify-center"
                             >
-                                View All Badges
+                                View Gallery
                             </Link>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="relative bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl max-w-lg w-full p-8 shadow-2xl text-white">
+            <div className="relative glass-card rounded-[2.5rem] max-w-lg w-full p-10 shadow-2xl flex flex-col gap-8">
                 {status === 'verifying' && (
-                    <div className="flex flex-col items-center gap-5 text-center py-4">
+                    <div className="flex flex-col items-center gap-6 text-center py-10">
                         <div className="relative">
-                            <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                <Loader2 className="h-10 w-10 text-blue-400 animate-spin" />
+                            <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center border border-white/5">
+                                <Loader2 className="h-10 w-10 text-primary animate-spin" />
                             </div>
                         </div>
-                        <h2 className="text-2xl font-bold">Verifying Payment</h2>
-                        <p className="text-slate-400">Please wait while we confirm your donation...</p>
+                        <div>
+                            <h2 className="text-2xl font-black text-white uppercase tracking-[0.2em] mb-2">Verifying</h2>
+                            <p className="text-gray-500 font-medium">Securing your contribution on the blockchain...</p>
+                        </div>
                     </div>
                 )}
 
                 {status === 'success' && (
-                    <div className="flex flex-col items-center gap-5 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex flex-col items-center gap-8 text-center transition-all duration-300">
                         <div className="relative">
-                            <div className="w-20 h-20 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
-                                <CheckCircle className="h-10 w-10 text-emerald-400" />
+                            <div className="w-24 h-24 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                                <CheckCircle className="h-12 w-12 text-primary" />
                             </div>
-                            {/* Confetti circles */}
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping" />
                         </div>
-                        <div>
-                            <h2 className="text-3xl font-extrabold text-white mb-2">Donation Successful!</h2>
-                            <p className="text-slate-400 text-sm">{message}</p>
+                        
+                        <div className="space-y-3">
+                            <h2 className="text-4xl font-black text-white leading-tight tracking-tighter">Success!</h2>
+                            <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px] opacity-70">Impact Confirmed</p>
+                            <p className="text-gray-500 font-medium max-w-xs mx-auto leading-relaxed">{message}</p>
                         </div>
 
                         {donationCode && (
-                            <div className="w-full">
-                                <p className="text-xs uppercase tracking-widest text-slate-400 mb-3 font-semibold">Your Donation Code</p>
-                                <div className="bg-slate-900/60 border border-emerald-500/30 rounded-2xl p-5 flex items-center justify-between gap-3">
-                                    <span className="font-mono font-bold text-xl text-emerald-400 tracking-wider flex-grow text-center">
-                                        {donationCode}
-                                    </span>
-                                    <button
-                                        onClick={copyCode}
-                                        className="flex-shrink-0 p-2 rounded-xl bg-slate-700 hover:bg-slate-600 transition-colors"
-                                        title="Copy code"
-                                    >
-                                        <Copy className={`w-4 h-4 ${copied ? 'text-emerald-400' : 'text-slate-400'}`} />
-                                    </button>
+                            <div className="w-full space-y-4">
+                                <div className="flex items-center justify-center gap-3">
+                                    <div className="h-[1px] flex-grow bg-white/5" />
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Donation Code</p>
+                                    <div className="h-[1px] flex-grow bg-white/5" />
                                 </div>
-                                <p className="text-slate-500 text-xs mt-2 leading-relaxed">
-                                    Save this code! Use it to verify your donation at <strong>DonateOn.com/verify</strong>
+                                
+                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-7 group relative overflow-hidden transition-all hover:bg-white/[0.07] hover:border-primary/20">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                    
+                                    <div className="relative flex items-center justify-between gap-4">
+                                        <span className="font-mono font-black text-3xl text-primary tracking-[0.15em] flex-grow">
+                                            {donationCode}
+                                        </span>
+                                        <button
+                                            onClick={copyCode}
+                                            className="h-12 w-12 flex items-center justify-center rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 shadow-lg"
+                                            title="Copy code"
+                                        >
+                                            <Copy className={`w-5 h-5 ${copied ? 'text-primary' : 'text-gray-400'}`} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-gray-600 text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed px-4">
+                                    Use the above protocol to verify your contribution
                                 </p>
                             </div>
                         )}
 
-                        {newBadges.length > 0 && (
-                            <div className="w-full bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:bg-purple-500/15 transition-colors"
-                                onClick={() => setShowBadgeModal(true)}>
-                                <Award className="w-6 h-6 text-purple-400 flex-shrink-0" />
-                                <div className="flex-grow text-left">
-                                    <p className="font-semibold text-white text-sm">You earned {newBadges.length} new badge{newBadges.length > 1 ? 's' : ''}!</p>
-                                    <p className="text-purple-400 text-xs">{newBadges.map(b => b.icon + ' ' + b.title).join(', ')}</p>
+                        {distributedCampaigns.length > 0 && (
+                            <div className="w-full space-y-4">
+                                <div className="flex items-center justify-center gap-3">
+                                    <div className="h-[1px] flex-grow bg-white/5" />
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Your Impact</p>
+                                    <div className="h-[1px] flex-grow bg-white/5" />
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-slate-500" />
+                                <div className="space-y-2">
+                                    {distributedCampaigns.map((camp, idx) => (
+                                        <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
+                                            <span className="text-xs font-bold text-gray-300 truncate pr-4 text-left">{camp.title}</span>
+                                            <span className="text-xs font-black text-white whitespace-nowrap">NRs {camp.amount}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
-                        <div className="w-full flex gap-3 mt-2">
+                        <div className="w-full grid grid-cols-3 gap-3">
                             {donationCode && (
                                 <Link
                                     to={`/verify?code=${donationCode}`}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-700/60 border border-slate-600/50 text-white rounded-xl font-medium hover:bg-slate-700 transition-colors text-sm"
+                                    className="h-[56px] flex flex-col items-center justify-center gap-1 bg-white/5 border border-white/10 text-white rounded-2xl transition-all hover:bg-white/10 group active:scale-95"
                                 >
-                                    <ExternalLink className="w-4 h-4" />
-                                    Verify
+                                    <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-primary transition-colors" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Verify</span>
                                 </Link>
                             )}
                             {typeof navigator.share === 'function' && donationCode && (
                                 <button
                                     onClick={shareCode}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-700/60 border border-slate-600/50 text-white rounded-xl font-medium hover:bg-slate-700 transition-colors text-sm"
+                                    className="h-[56px] flex flex-col items-center justify-center gap-1 bg-white/5 border border-white/10 text-white rounded-2xl transition-all hover:bg-white/10 group active:scale-95"
                                 >
-                                    <Share2 className="w-4 h-4" />
-                                    Share
+                                    <Share2 className="w-4 h-4 text-gray-500 group-hover:text-secondary transition-colors" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Share</span>
                                 </button>
                             )}
                             <button
                                 onClick={() => navigate('/dashboard')}
-                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-400 hover:to-teal-400 transition-all text-sm"
+                                className={`h-[56px] flex flex-col items-center justify-center gap-1 bg-primary text-black rounded-2xl transition-all hover:bg-emerald-400 shadow-xl shadow-primary/20 active:scale-95 ${!donationCode ? 'col-span-3' : 'col-span-1'}`}
                             >
-                                Dashboard
-                                <ArrowRight className="w-4 h-4" />
+                                <ArrowRight className="w-4 h-4 font-black" />
+                                <span className="text-[9px] font-black uppercase tracking-widest">Done</span>
                             </button>
                         </div>
                     </div>
                 )}
 
                 {status === 'pending' && (
-                    <div className="flex flex-col items-center gap-5 text-center">
-                        <div className="w-20 h-20 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-                            <Loader2 className="h-10 w-10 text-amber-400 animate-spin" />
+                    <div className="flex flex-col items-center gap-8 text-center py-6">
+                        <div className="w-24 h-24 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                            <Loader2 className="h-12 w-12 text-amber-500 animate-spin" />
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">Payment Pending</h2>
-                            <p className="text-slate-400 text-sm mt-2">{message}</p>
+                        <div className="space-y-3">
+                            <h2 className="text-3xl font-black text-white tracking-tighter">Processing</h2>
+                            <p className="text-gray-500 font-medium leading-relaxed">{message}</p>
                         </div>
-                        <div className="flex gap-3 mt-2">
+                        <div className="w-full grid grid-cols-2 gap-4">
                             <button
                                 onClick={() => window.location.reload()}
-                                className="px-6 py-3 bg-slate-700 text-white rounded-xl font-medium hover:bg-slate-600 transition-colors text-sm"
+                                className="h-[54px] bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all shadow-lg active:scale-95"
                             >
-                                Check Again
+                                Refresh
                             </button>
                             <button
                                 onClick={() => navigate('/dashboard')}
-                                className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90 transition-opacity text-sm"
+                                className="h-[54px] bg-amber-500 text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all shadow-xl shadow-amber-500/20 active:scale-95"
                             >
                                 Dashboard
                             </button>
@@ -263,26 +287,26 @@ const PaymentSuccess = () => {
                 )}
 
                 {status === 'error' && (
-                    <div className="flex flex-col items-center gap-5 text-center">
-                        <div className="w-20 h-20 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center">
-                            <XCircle className="h-10 w-10 text-red-400" />
+                    <div className="flex flex-col items-center gap-8 text-center py-6">
+                        <div className="w-24 h-24 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                            <XCircle className="h-12 w-12 text-red-500" />
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">Verification Failed</h2>
-                            <p className="text-slate-400 text-sm mt-2">{message}</p>
+                        <div className="space-y-3">
+                            <h2 className="text-3xl font-black text-white tracking-tighter">Oops!</h2>
+                            <p className="text-gray-500 font-medium leading-relaxed">{message}</p>
                         </div>
-                        <div className="flex gap-3 mt-2">
+                        <div className="w-full grid grid-cols-2 gap-4">
                             <button
                                 onClick={() => navigate('/help')}
-                                className="px-4 py-3 text-slate-400 font-medium hover:text-white transition-colors text-sm"
+                                className="h-[54px] bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all shadow-lg active:scale-95"
                             >
-                                Contact Support
+                                Support
                             </button>
                             <button
                                 onClick={() => navigate('/')}
-                                className="px-6 py-3 bg-slate-700 text-white rounded-xl font-medium hover:bg-slate-600 transition-colors text-sm"
+                                className="h-[54px] bg-red-500 text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-400 transition-all shadow-xl shadow-red-500/20 active:scale-95"
                             >
-                                Go Home
+                                Return
                             </button>
                         </div>
                     </div>

@@ -420,6 +420,7 @@ export const getAdminStats = async (_req: AuthRequest, res: Response) => {
     try {
         const [
             totalsRes,
+            timeBreakdownRes,
             campaignCountRes,
             donorCountRes,
             topCampaignsRes,
@@ -434,6 +435,19 @@ export const getAdminStats = async (_req: AuthRequest, res: Response) => {
                     COUNT(*)::int AS "totalDonations",
                     COALESCE(SUM(amount), 0)::numeric AS "totalRaised",
                     COALESCE(AVG(amount), 0)::numeric AS "avgDonation"
+                 FROM donations
+                 WHERE payment_status = 'SUCCEEDED'`
+            ),
+            pool.query(
+                `SELECT 
+                    COALESCE(SUM(amount) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours'), 0)::numeric AS "raised24h",
+                    COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours')::int AS "donations24h",
+                    COALESCE(SUM(amount) FILTER (WHERE created_at > NOW() - INTERVAL '7 days'), 0)::numeric AS "raised7d",
+                    COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days')::int AS "donations7d",
+                    COALESCE(SUM(amount) FILTER (WHERE created_at > NOW() - INTERVAL '30 days'), 0)::numeric AS "raised30d",
+                    COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '30 days')::int AS "donations30d",
+                    COALESCE(SUM(amount) FILTER (WHERE created_at > NOW() - INTERVAL '1 year'), 0)::numeric AS "raised1y",
+                    COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '1 year')::int AS "donations1y"
                  FROM donations
                  WHERE payment_status = 'SUCCEEDED'`
             ),
@@ -476,10 +490,23 @@ export const getAdminStats = async (_req: AuthRequest, res: Response) => {
             pool.query(`SELECT COUNT(*)::int AS count FROM users WHERE kyc_status = 'VERIFIED'`)
         ]);
 
+        const timeData = timeBreakdownRes.rows[0];
+
         res.json({
             totalDonations: totalsRes.rows[0].totalDonations,
             totalRaised: parseFloat(totalsRes.rows[0].totalRaised),
             avgDonation: parseFloat(totalsRes.rows[0].avgDonation),
+            
+            // Time Breakdowns
+            raised24h: parseFloat(timeData.raised24h),
+            donations24h: parseInt(timeData.donations24h),
+            raised7d: parseFloat(timeData.raised7d),
+            donations7d: parseInt(timeData.donations7d),
+            raised30d: parseFloat(timeData.raised30d),
+            donations30d: parseInt(timeData.donations30d),
+            raised1y: parseFloat(timeData.raised1y),
+            donations1y: parseInt(timeData.donations1y),
+
             totalCampaigns: campaignCountRes.rows[0].totalCampaigns,
             totalDonors: donorCountRes.rows[0].totalDonors,
             topCampaigns: topCampaignsRes.rows,

@@ -13,6 +13,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Stories from './pages/Stories';
 import Help from './pages/Help';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import CookiePolicy from './pages/CookiePolicy';
 import StartFundraising from './pages/StartFundraising';
 import CreateCampaign from './pages/CreateCampaign';
 import CampaignList from './pages/CampaignList';
@@ -30,9 +33,12 @@ import Badges from './pages/Badges';
 import Notifications from './pages/Notifications';
 import Support from './pages/Support';
 import Donate from './pages/Donate';
+import CategoryDetail from './pages/CategoryDetail';
+import CategoryList from './pages/CategoryList';
 import { AuthProvider } from './context/AuthContext';
 
 import PageTransition from './components/PageTransition';
+import ScrollToTop from './components/ScrollToTop';
 import CommandCenter from './components/CommandCenter';
 import CommandBar from './components/CommandBar';
 
@@ -81,10 +87,15 @@ const AnimatedRoutes = () => {
                 <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
                 <Route path="/stories" element={<PageTransition><Stories /></PageTransition>} />
                 <Route path="/help" element={<PageTransition><Help /></PageTransition>} />
+                <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+                <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
+                <Route path="/cookies" element={<PageTransition><CookiePolicy /></PageTransition>} />
                 <Route path="/campaigns" element={<PageTransition><CampaignList /></PageTransition>} />
                 <Route path="/campaigns/:id" element={<PageTransition><CampaignDetails /></PageTransition>} />
                 <Route path="/verify" element={<PageTransition><VerifyDonation /></PageTransition>} />
                 <Route path="/donate" element={<PageTransition><Donate /></PageTransition>} />
+                <Route path="/categories" element={<PageTransition><CategoryList /></PageTransition>} />
+                <Route path="/categories/:slug" element={<PageTransition><CategoryDetail /></PageTransition>} />
 
                 {/* Protected Routes */}
                 <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
@@ -126,6 +137,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <Layout onSearchOpen={() => setIsSearchOpen(true)}>
 

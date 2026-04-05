@@ -104,39 +104,47 @@ const CampaignList = () => {
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-primary via-indigo-600 to-indigo-800 text-white rounded-[2.5rem] p-12 shadow-2xl relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                        <div className="relative text-white rounded-[2.5rem] p-12 shadow-2xl overflow-hidden group min-h-[400px]">
                             {featuredCampaign ? (
-                                <div className="relative z-10 h-full flex flex-col justify-between">
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 rounded-2xl bg-dark/20 flex items-center justify-center backdrop-blur-xl border border-white/10">
-                                                <MapPin className="h-6 w-6" />
+                                <>
+                                    <img 
+                                        src={featuredCampaign.imageUrl} 
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        alt={featuredCampaign.title}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-black/95 via-black/40 to-primary/20" />
+                                    
+                                    <div className="relative z-10 h-full flex flex-col justify-between">
+                                        <div className="space-y-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20">
+                                                    <MapPin className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] uppercase tracking-widest text-white/70 font-black">Featured Cause</p>
+                                                    <h3 className="text-2xl font-black tracking-tight line-clamp-1">{featuredCampaign.title}</h3>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-[10px] uppercase tracking-widest text-white/50 font-black">Featured Cause</p>
-                                                <h3 className="text-2xl font-black tracking-tight line-clamp-1">{featuredCampaign.title}</h3>
+                                            <p className="text-white/80 font-medium leading-relaxed line-clamp-3">
+                                                {featuredCampaign.description}
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 mt-12">
+                                            <div className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-3xl p-5">
+                                                <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Raised</p>
+                                                <p className="text-2xl font-black mt-1">NRs {(featuredCampaign.currentAmount / 1000).toFixed(1)}K</p>
+                                            </div>
+                                            <div className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-3xl p-5">
+                                                <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Goal</p>
+                                                <p className="text-2xl font-black mt-1">NRs {(featuredCampaign.targetAmount / 1000).toFixed(1)}K</p>
                                             </div>
                                         </div>
-                                        <p className="text-white/70 font-medium leading-relaxed line-clamp-3">
-                                            {featuredCampaign.description}
-                                        </p>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 mt-12">
-                                        <div className="rounded-2xl bg-dark/20 border border-white/10 backdrop-blur-xl p-5">
-                                            <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Raised</p>
-                                            <p className="text-2xl font-black mt-1">NRs {(featuredCampaign.currentAmount / 1000).toFixed(1)}K</p>
-                                        </div>
-                                        <div className="rounded-2xl bg-dark/20 border border-white/10 backdrop-blur-xl p-5">
-                                            <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Goal</p>
-                                            <p className="text-2xl font-black mt-1">NRs {(featuredCampaign.targetAmount / 1000).toFixed(1)}K</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                </>
                             ) : (
-                                <div className="relative z-10 space-y-6 flex flex-col items-center justify-center h-full opacity-40">
-                                    <TrendingUp className="h-12 w-12 animate-pulse" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Synthesizing Causes...</p>
+                                <div className="absolute inset-0 bg-white/5 flex flex-col items-center justify-center gap-4">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-600">Finding campaigns...</p>
                                 </div>
                             )}
                         </div>

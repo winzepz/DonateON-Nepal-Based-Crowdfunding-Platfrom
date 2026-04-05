@@ -38,11 +38,12 @@ const handleInitiationError = (error: unknown, res: Response, action: string) =>
 export const initiateEsewa = async (req: AuthRequest, res: Response) => {
     const requestId = res.locals.requestId;
     try {
-        const { amount, productId, isAnonymous, donorName } = req.body;
+        const { amount, productId, categoryPoolId, isAnonymous, donorName } = req.body;
         logger.info('payment.esewa.initiate_start', { 
             userId: req.user?.id, 
             amount, 
             productId,
+            categoryPoolId,
             requestId 
         });
 
@@ -50,6 +51,7 @@ export const initiateEsewa = async (req: AuthRequest, res: Response) => {
             gateway: 'ESEWA',
             amount: Number(amount),
             campaignId: productId,
+            categoryPoolId,
             userId: req.user?.id,
             isAnonymous,
             donorName,
@@ -71,11 +73,12 @@ export const initiateEsewa = async (req: AuthRequest, res: Response) => {
 export const initiateKhalti = async (req: AuthRequest, res: Response) => {
     const requestId = res.locals.requestId;
     try {
-        const { amount, productId, name, isAnonymous, donorName } = req.body;
+        const { amount, productId, categoryPoolId, name, isAnonymous, donorName } = req.body;
         logger.info('payment.khalti.initiate_start', { 
             userId: req.user?.id, 
             amount, 
             productId,
+            categoryPoolId,
             requestId 
         });
 
@@ -83,6 +86,7 @@ export const initiateKhalti = async (req: AuthRequest, res: Response) => {
             gateway: 'KHALTI',
             amount: Number(amount),
             campaignId: productId,
+            categoryPoolId,
             userId: req.user?.id,
             isAnonymous,
             donorName,

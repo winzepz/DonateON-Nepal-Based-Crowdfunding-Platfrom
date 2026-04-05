@@ -5,8 +5,6 @@ import axios from 'axios';
 import { Heart, Target, Wallet, Copy, TrendingUp, Plus, Settings, LogOut, Layout, Clock } from 'lucide-react';
 import CampaignCard from '../components/CampaignCard';
 import { API_BASE_URL } from '../config';
-import { gsap } from 'gsap';
-import AppearOnScroll from '../components/AppearOnScroll';
 import { GridSkeleton, TableSkeleton } from '../components/Skeleton';
 
 const Dashboard = () => {
@@ -94,26 +92,6 @@ const Dashboard = () => {
         };
 
         fetchData();
-
-        // GSAP Entrance
-        const ctx = gsap.context(() => {
-            gsap.from(".dash-sidebar > *", {
-                x: -20,
-                opacity: 0,
-                duration: 0.8,
-                stagger: 0.1,
-                ease: "power2.out"
-            });
-            gsap.from(".dash-main-header > *", {
-                y: 20,
-                opacity: 0,
-                duration: 0.8,
-                stagger: 0.1,
-                ease: "power2.out"
-            });
-        }, dashboardRef);
-
-        return () => ctx.revert();
     }, [isAuthenticated, token, isFundraiser]);
 
     if (!isAuthenticated) return null;
@@ -125,8 +103,8 @@ const Dashboard = () => {
                     
                     {/* Left Side: Profile Summary & Quick Stats */}
                     <div className="dash-sidebar w-full lg:w-80 space-y-6 lg:sticky lg:top-24">
-                        <div className="glass-card rounded-[2.5rem] p-8 border-white/5 bg-[#131316]/60 backdrop- shadow-2xl overflow-hidden relative group">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
+                        <div className="glass-card rounded-[2.5rem] p-8 border-white/5 bg-[#131316]/60 shadow-2xl overflow-hidden relative group">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl -mr-12 -mt-12" />
                             
                             <div className="relative z-10 space-y-6 text-center lg:text-left">
                                 <div className="h-24 w-24 rounded-[2rem] bg-gradient-to-br from-[#18181B] to-[#27272A] border-4 border-[#09090B] shadow-2xl flex items-center justify-center text-4xl font-black text-primary mx-auto lg:mx-0">
@@ -137,10 +115,10 @@ const Dashboard = () => {
                                     <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{user?.role?.replace('_', ' ')}</p>
                                 </div>
                                 <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-                                    <Link to="/profile" className="p-3 rounded-xl bg-dark/5 text-gray-400 hover:text-white hover:bg-dark/10 transition-all shadow-xl">
+                                    <Link to="/profile" className="p-3 rounded-xl bg-dark/5 text-gray-400 hover:text-white hover:bg-dark/10 shadow-lg">
                                         <Settings className="h-4 w-4" />
                                     </Link>
-                                    <button onClick={logout} className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-xl">
+                                    <button onClick={logout} className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white shadow-lg">
                                         <LogOut className="h-4 w-4" />
                                     </button>
                                 </div>
@@ -222,10 +200,10 @@ const Dashboard = () => {
                                                     currentAmount={c.currentAmount}
                                                     targetAmount={c.targetAmount}
                                                 />
-                                                <div className="absolute top-6 right-6 z-20 flex gap-2 translate-y-2 opacity-0 group-hover/card:translate-y-0 group-hover/card:opacity-100 transition-all duration-300">
+                                                <div className="absolute top-6 right-6 z-20 flex gap-2">
                                                     <button 
                                                         onClick={() => handleRequestPayout(c)}
-                                                        className="px-4 py-2 bg-dark text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-2xl hover:bg-primary transition-colors"
+                                                        className="px-4 py-2 bg-dark text-gray-900 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-2xl hover:bg-primary"
                                                     >
                                                         Payout
                                                     </button>
@@ -286,12 +264,11 @@ const Dashboard = () => {
                                     <TableSkeleton rows={4} />
                                 ) : donations.length > 0 ? (
                                     <div className="divide-y divide-white/5">
-                                        {donations.slice(0, 10).map((d: any, i) => (
-                                            <AppearOnScroll key={d.id} delay={i * 50} direction="none" threshold={0.01}>
+                                        {donations.slice(0, 10).map((d: any) => (
                                                 <div className="p-6 hover:bg-dark/5 transition-colors group/row">
                                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                         <div className="flex items-center gap-4">
-                                                            <div className="h-12 w-12 rounded-2xl bg-dark/5 flex items-center justify-center text-gray-400 group-hover/row:bg-primary group-hover/row:text-white transition-all">
+                                                            <div className="h-12 w-12 rounded-2xl bg-dark/5 flex items-center justify-center text-gray-400 group-hover/row:bg-primary group-hover/row:text-white transition-colors">
                                                                 <Clock className="h-5 w-5" />
                                                             </div>
                                                             <div className="space-y-1">
@@ -302,7 +279,7 @@ const Dashboard = () => {
                                                                     <button onClick={() => copyCode(d.donationCode || d.trackingCode)} className="text-[10px] font-black text-primary hover:underline flex items-center gap-1">
                                                                         {d.donationCode || d.trackingCode} <Copy className="h-3 w-3" />
                                                                     </button>
-                                                                    {copiedCode === (d.donationCode || d.trackingCode) && <span className="text-[8px] font-black text-emerald-500 uppercase animate-in fade-in zoom-in">Copied!</span>}
+                                                                    {copiedCode === (d.donationCode || d.trackingCode) && <span className="text-[8px] font-black text-emerald-500 uppercase">Copied!</span>}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -312,7 +289,6 @@ const Dashboard = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </AppearOnScroll>
                                         ))}
                                     </div>
                                 ) : (
@@ -330,7 +306,7 @@ const Dashboard = () => {
             {/* Payout Modal Redesign */}
             {showPayoutModal && selectedCampaign && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="glass-card rounded-[3rem] p-10 max-w-lg w-full shadow-[0_0_100px_rgba(0,0,0,0.8)] border-white/5 bg-[#131316] animate-in zoom-in-95 duration-300">
+                    <div className="glass-card rounded-[3rem] p-10 max-w-lg w-full shadow-[0_0_100px_rgba(0,0,0,0.8)] border-white/5 bg-[#131316]">
                         <div className="h-16 w-16 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary mb-8 shadow-2xl shadow-primary/20">
                             <Wallet className="h-8 w-8" />
                         </div>
@@ -368,8 +344,8 @@ const Dashboard = () => {
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 mt-10">
-                            <button onClick={() => setShowPayoutModal(false)} className="flex-1 py-5 rounded-2xl font-black text-gray-500 hover:bg-dark/5 transition-all uppercase tracking-[0.2em]">Close</button>
-                            <button onClick={submitPayout} className="flex-1 py-5 rounded-2xl bg-primary text-black font-black hover:bg-emerald-400 shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1 uppercase tracking-[0.2em]">Confirm Payout</button>
+                            <button onClick={() => setShowPayoutModal(false)} className="flex-1 py-5 rounded-2xl font-black text-gray-500 hover:bg-dark/5 transition-colors uppercase tracking-[0.2em]">Close</button>
+                            <button onClick={submitPayout} className="flex-1 py-5 rounded-2xl bg-primary text-black font-black hover:bg-emerald-400 shadow-xl shadow-primary/20 transition-all uppercase tracking-[0.2em]">Confirm Payout</button>
                         </div>
                     </div>
                 </div>

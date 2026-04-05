@@ -187,10 +187,11 @@ export const getSupportedCampaigns = async (req: AuthenticatedRequest, res: Resp
     }
 };
 
-export const getAllCampaigns = async (_req: Request, res: Response) => {
+export const getAllCampaigns = async (req: Request, res: Response) => {
     try {
-        const campaigns = await pool.query(
-            `SELECT c.id,
+        const { category } = req.query;
+        let query = `
+            SELECT c.id,
                     c.title,
                     c.description,
                     c.target_amount AS "targetAmount",
@@ -205,8 +206,17 @@ export const getAllCampaigns = async (_req: Request, res: Response) => {
               FROM campaigns c
               JOIN users u ON c.organizer_id = u.id
               WHERE c.status = 'APPROVED'
-              ORDER BY c.created_at DESC`
-        );
+        `;
+        const params: any[] = [];
+
+        if (category) {
+            query += ` AND c.category = $1`;
+            params.push(category);
+        }
+
+        query += ` ORDER BY c.created_at DESC`;
+        
+        const campaigns = await pool.query(query, params);
 
         const formattedCampaigns = campaigns.rows.map(row => ({
             id: row.id,

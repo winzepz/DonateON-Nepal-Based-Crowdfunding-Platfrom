@@ -16,10 +16,11 @@ export const generateDonationCode = (): string => {
  */
 export const createDonationCode = async (
     donationId: string,
-    campaignId: string,
+    campaignId: string | null,
     donorDisplayName: string,
     amount: number,
     gateway: string,
+    categoryPoolId?: string | null,
     client?: PoolClient
 ): Promise<string> => {
     const db = client || pool;
@@ -47,10 +48,10 @@ export const createDonationCode = async (
     }
 
     await db.query(
-        `INSERT INTO donation_codes (code, donation_id, campaign_id, donor_display_name, amount, gateway)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO donation_codes (code, donation_id, campaign_id, category_pool_id, donor_display_name, amount, gateway)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          ON CONFLICT (donation_id) DO NOTHING`,
-        [code, donationId, campaignId, donorDisplayName || 'Anonymous', amount, gateway]
+        [code, donationId, campaignId, categoryPoolId || null, donorDisplayName || 'Anonymous', amount, gateway]
     );
 
     return code;
@@ -72,7 +73,8 @@ export const lookupDonationCode = async (code: string) => {
             d.is_released AS "isReleased",
             d.is_anonymous AS "isAnonymous"
          FROM donation_codes dc
-         JOIN campaigns c ON dc.campaign_id = c.id
+         LEFT JOIN campaigns c ON dc.campaign_id = c.id
+         LEFT JOIN category_pools cp ON dc.category_pool_id = cp.id
          JOIN donations d ON dc.donation_id = d.id
          WHERE dc.code = $1`,
         [code.toUpperCase()]
@@ -89,8 +91,9 @@ export const lookupDonationCode = async (code: string) => {
 
     return {
         code: row.code,
-        campaignTitle: row.campaignTitle,
+        campaignTitle: row.campaignTitle || (row.categoryPoolId ? 'Category Pool' : 'Universal Pool'),
         campaignId: row.campaignId,
+        categoryPoolId: row.categoryPoolId,
         amount: parseFloat(row.amount),
         donorName: maskedName,
         gateway: row.gateway,
@@ -108,8 +111,8 @@ const maskName = (name: string): string => {
     return name
         .split(' ')
         .map(part => {
-            if (part.length <= 1) return part;
-            return part[0] + '*'.repeat(part.length - 1);
+            if (part.length <= 2) return part;
+            return part.slice(0, 2) + '*'.repeat(part.length - 2);
         })
         .join(' ');
 };

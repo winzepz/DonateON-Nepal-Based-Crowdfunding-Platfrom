@@ -6,6 +6,7 @@ import { createDonationCode } from './donationCodeService';
 import { evaluateAndGrantBadges, EarnedBadge } from './badgeService';
 import { logger } from '../utils/logger';
 import { recordAuditLog } from './auditService';
+import { distributePoolDonation } from './distributionService';
 
 export type PaymentGateway = 'ESEWA' | 'KHALTI';
 type DonationPaymentStatus = 'INITIATED' | 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'MISMATCHED';
@@ -14,7 +15,8 @@ type VerificationStatus = 'PENDING' | 'VERIFIED' | 'FAILED' | 'MISMATCHED';
 type DonationRow = {
     id: string;
     amount: string;
-    campaign_id: string;
+    campaign_id: string | null;
+    category_pool_id: string | null;
     user_id: string | null;
     is_anonymous: boolean;
     donor_name: string | null;
@@ -36,7 +38,8 @@ type PaymentTransactionRow = {
 type InitiatePaymentInput = {
     gateway: PaymentGateway;
     amount: number;
-    campaignId: string;
+    campaignId?: string | null;
+    categoryPoolId?: string | null;
     userId?: string;
     isAnonymous?: boolean;
     donorName?: string;
@@ -206,6 +209,7 @@ const getExistingPaymentState = async (
             d.payment_gateway,
             d.payment_status,
             d.currency,
+            d.category_pool_id,
             pt.id AS "id",
             pt.donation_id,
             pt.gateway,
@@ -238,6 +242,7 @@ const getExistingPaymentState = async (
             payment_gateway: row.payment_gateway,
             payment_status: row.payment_status,
             currency: row.currency,
+            category_pool_id: row.category_pool_id,
         },
         transaction: {
             id: row.id,
@@ -268,19 +273,28 @@ const createPendingDonation = async (
 ) => {
     const amount = normalizeAmount(input.amount);
 
-    const campaignRes = await client.query<{ id: string; status: string }>(
-        `SELECT id, status
-         FROM campaigns
-         WHERE id = $1`,
-        [input.campaignId]
-    );
+    if (input.campaignId) {
+        const campaignRes = await client.query<{ id: string; status: string }>(
+            `SELECT id, status
+             FROM campaigns
+             WHERE id = $1`,
+            [input.campaignId]
+        );
 
-    if (campaignRes.rows.length === 0) {
-        throw new Error('Campaign not found');
-    }
+        if (campaignRes.rows.length === 0) {
+            throw new Error('Campaign not found');
+        }
 
-    if (campaignRes.rows[0].status !== 'APPROVED') {
-        throw new Error('Campaign is not open for donations');
+        if (campaignRes.rows[0].status !== 'APPROVED') {
+            throw new Error('Campaign is not open for donations');
+        }
+    } else if (input.categoryPoolId) {
+        const poolRes = await client.query('SELECT id FROM category_pools WHERE id = $1', [input.categoryPoolId]);
+        if (poolRes.rows.length === 0) {
+            throw new Error('Category pool not found');
+        }
+    } else {
+        throw new Error('Either campaignId or categoryPoolId must be provided');
     }
 
     const donorName = await getClientDonorName(
@@ -295,6 +309,7 @@ const createPendingDonation = async (
         `INSERT INTO donations (
             amount,
             campaign_id,
+            category_pool_id,
             user_id,
             is_anonymous,
             donor_name,
@@ -303,12 +318,13 @@ const createPendingDonation = async (
             currency,
             idempotency_key
         )
-         VALUES ($1, $2, $3, $4, $5, $6, 'INITIATED', 'NPR', $7)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'INITIATED', 'NPR', $8)
          ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
          RETURNING id`,
         [
             amount,
-            input.campaignId,
+            input.campaignId || null,
+            input.categoryPoolId || null,
             input.userId || null,
             input.isAnonymous || false,
             donorName,
@@ -605,6 +621,7 @@ const getPaymentStateByDonationId = async (client: PoolClient, donationId: strin
             d.payment_gateway,
             d.payment_status,
             d.currency,
+            d.category_pool_id,
             pt.id AS "payment_transaction_id",
             pt.gateway_reference,
             pt.gateway_transaction_id AS "gateway_transaction_id_stored",
@@ -707,6 +724,7 @@ const finalizeSuccessfulPayment = async (
             paymentState.donor_name || 'Anonymous',
             Number(paymentState.amount),
             params.gateway,
+            paymentState.category_pool_id,
             client
         );
         return {
@@ -737,6 +755,7 @@ const finalizeSuccessfulPayment = async (
         entityId: paymentState.id,
         details: { 
             campaignId: paymentState.campaign_id, 
+            categoryPoolId: paymentState.category_pool_id,
             amount: paymentState.amount,
             gateway: params.gateway,
             reference: params.gatewayTransactionId
@@ -745,12 +764,23 @@ const finalizeSuccessfulPayment = async (
 
 
 
+    let distributedCampaigns = null;
+    if (paymentState.category_pool_id) {
+        distributedCampaigns = await distributePoolDonation(
+            paymentState.category_pool_id,
+            Number(paymentState.amount),
+            paymentState.id,
+            client
+        );
+    }
+
     const donationCode = await createDonationCode(
         paymentState.id,
         paymentState.campaign_id,
         paymentState.donor_name || 'Anonymous',
         Number(paymentState.amount),
         params.gateway,
+        paymentState.category_pool_id,
         client
     );
 
@@ -758,6 +788,7 @@ const finalizeSuccessfulPayment = async (
         donationId: paymentState.id,
         donationCode,
         userId: paymentState.user_id,
+        distributedCampaigns
     };
 };
 
@@ -926,6 +957,7 @@ export const verifyKhaltiPayment = async (pidx: string, requestId?: string) => {
                 d.payment_gateway,
                 d.payment_status,
                 d.currency,
+                d.category_pool_id,
                 pt.id AS "payment_transaction_id",
                 pt.gateway_reference,
                 pt.verification_status

@@ -9,6 +9,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { API_BASE_URL } from '../config';
 import AppearOnScroll from '../components/AppearOnScroll';
 import NumberTicker from '../components/NumberTicker';
+import CategoryPools from '../components/CategoryPools';
 
 // Register GSAP plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -87,7 +88,16 @@ const LandingPage = () => {
         <div className="min-h-screen bg-dark font-sans overflow-x-hidden">
             {/* Hero Section */}
             <div ref={heroRef} className="relative overflow-hidden pt-20 pb-12 sm:pt-32 sm:pb-16 lg:pb-24">
-                {/* Background Blobs (GSAP Parallax) */}
+                {/* Background Image & Blobs */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                    <img 
+                        src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80&w=2000" 
+                        alt="" 
+                        className="w-full h-full object-cover opacity-[0.07] scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-dark via-dark/50 to-dark" />
+                </div>
+
                 <div ref={blob1Ref} className="absolute -top-24 right-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
                 <div ref={blob2Ref} className="absolute top-1/2 -left-24 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none" />
 
@@ -161,7 +171,7 @@ const LandingPage = () => {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
                                 <div className="absolute bottom-6 left-6 right-6 p-6 bg-dark/20 backdrop-blur-xl border border-white/30 rounded-2xl">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-black uppercase tracking-widest text-white font-mono">Platform Insight</span>
+                                        <span className="text-xs font-black uppercase tracking-widest text-white font-mono">Transparency first</span>
                                         <span className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
                                     </div>
                                     <p className="text-xl font-black text-white tracking-tight">
@@ -176,6 +186,9 @@ const LandingPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Category Pools Section */}
+            <CategoryPools />
 
             {/* Impact Stats */}
             <div className="py-24 border-y border-white/5">
@@ -217,9 +230,9 @@ const LandingPage = () => {
 
                     <div className="grid md:grid-cols-3 gap-12">
                         {[
-                            { step: '01', title: 'Submit Campaign', desc: 'Detail your cause with verified identity and documentation.', icon: Globe },
-                            { step: '02', title: 'Community Synergy', desc: 'Connect instantly with high-intent local and global donors.', icon: Users },
-                            { step: '03', title: 'Final Disbursement', desc: 'Secure payouts to local Nepali banks with full proof of impact.', icon: Shield },
+                            { step: '01', title: 'Submit Campaign', desc: 'Create your cause with verified documentation.', icon: Globe },
+                            { step: '02', title: 'Community Support', desc: 'Connect with local and global donors.', icon: Users },
+                            { step: '03', title: 'Bank Transfer', desc: 'Receive funds to your local Nepali bank.', icon: Shield },
                         ].map((item, i) => (
                             <AppearOnScroll key={i} direction={i === 0 ? 'right' : i === 2 ? 'left' : 'up'} delay={i * 200}>
                                 <div className="relative group p-10 rounded-[2.5rem] bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-500 h-full">
@@ -263,7 +276,7 @@ const LandingPage = () => {
                             <div className="glass-card p-10 rounded-[2.5rem] space-y-10">
                                 <div className="space-y-4">
                                     <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                                        <span>Community Impact Goal</span>
+                                        <span>Contribution Goal</span>
                                         <span className="text-primary tracking-normal font-mono">88%</span>
                                     </div>
                                     <div className="h-4 bg-white/5 rounded-full overflow-hidden p-1">

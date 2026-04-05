@@ -54,6 +54,7 @@ const Navbar = () => {
 
     const navLinks = [
         { name: 'Home', path: '/' },
+        { name: 'Impact Causes', path: '/categories' }, 
         { name: 'Campaigns', path: '/campaigns' },
         { name: 'Stories', path: '/stories' },
         { name: 'Verify Donation', path: '/verify' },
